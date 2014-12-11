@@ -1,0 +1,20 @@
+{
+  "esnext": true,
+  "preset": "crockford",
+  "requireParenthesesAroundIIFE": true,
+  "maximumLineLength": 100,
+  "validateLineBreaks": "LF",
+  "validateIndentation": 2,
+  "disallowKeywords": ["with"],
+  "disallowSpacesInsideObjectBrackets": true,
+  "disallowImplicitTypeConversion": ["string"],
+  "disallowTrailingComma": null,
+  "disallowSpaceBeforeBinaryOperators": null,
+  "requireMultipleVarDecl": null,
+  "requireCurlyBraces": null,
+  "safeContextKeyword": "that",
+  "excludeFiles": [
+    "client/app/bower_components/**",
+    "client/dist/**"
+  ]
+}
