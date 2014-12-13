@@ -5,6 +5,7 @@
   "maximumLineLength": 100,
   "validateLineBreaks": "LF",
   "validateIndentation": 2,
+  "disallowDanglingUnderscores": null,
   "disallowKeywords": ["with"],
   "disallowSpacesInsideObjectBrackets": true,
   "disallowImplicitTypeConversion": ["string"],

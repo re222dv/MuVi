@@ -38,10 +38,9 @@ export var routes = [
     },
   },
   {
-    method: 'POST',
-    path: '/api/area',
+    method: 'GET',
+    path: '/api/playlist/{id}',
     handler: (request, reply) =>
-      updateArea(request.payload.name, request.payload.longitude, request.payload.latitude)
-        .then(() => reply('saved')),
+      neo4j.getPlaylist(request.params.id).then(reply),
   },
 ];

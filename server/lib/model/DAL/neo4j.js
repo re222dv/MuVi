@@ -47,21 +47,38 @@ let neo4j = {
         relations.forEach(relation => {
           query += `${nodeFor(relation.start)}-[:${relation.label}]->${nodeFor(relation.end)}, `;
         });
+        entities.forEach(entity => {
+          delete entity.index;
+        });
         query = query.substr(0, query.length - 2);
 
         return new Promise(resolve =>
           db.query(query, placeholders, promise(resolve)));
-      }
-  ),
+      }),
+
   getUsersPlaylists: (userId) =>
-    db.query('Match (:User {id:{userId}})-[]->(p:Playlist) Return p', {userId})
-      .then(result => console.log(result)),
-  getPlaylist: (playlistId) =>
-    db.query(`Match (p:Playlist {id:{playlistId}})
-                    (p)-[]->(s:Song)-[]->(al:Album)-[]->(ar:Artist)
-                    (s)-[]->(v:Video)
-              Return s,al,ar`, {playlistId})
-      .then(result => console.log(result)),
+    new Promise(resolve =>
+      db.query('Match (:User {id:{userId}})-[]->(p:Playlist) Return p', {userId}, promise(resolve)))
+      .then(result => result.map(row => row.p._data.data)),
+
+  getPlaylist: (id) =>
+    new Promise(resolve =>
+      db.query(`Match (p:Playlist {id:{id}}),
+                      (p)-[]->(s:Song)-[]->(al:Album)-[]->(ar:Artist)
+                Optional Match (s)-[]->(v:Video)
+                Return s,al,ar,v`, {id}, promise(resolve)))
+      .then(result => {
+        let playlist = {id, songs: []};
+        result.forEach(row => {
+          row.s._data.data.album = row.al._data.data;
+          row.s._data.data.artist = row.ar._data.data;
+          if (row.v) {
+            row.s._data.data.video = row.v._data.data;
+          }
+          playlist.songs.push(row.s._data.data);
+        });
+        return playlist;
+      }),
 };
 
 export default neo4j;
