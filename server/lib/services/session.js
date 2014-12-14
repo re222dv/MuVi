@@ -5,6 +5,7 @@ let redis = require('../model/DAL/redis');
 let get = redis.get, set = redis.set, del = redis.del;
 
 function destroy() {
+  this.isDestroyed = true;
   return del(`session-${this.id}`);
 }
 

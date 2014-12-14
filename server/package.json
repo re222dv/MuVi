@@ -4,12 +4,13 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --compilers js:mocha-traceur test/specs/*.js"
+    "test": "./node_modules/mocha/bin/mocha --compilers js:mocha-traceur test/specs/**/*.js"
   },
   "author": "",
   "license": "AGPL",
   "dependencies": {
     "base64id": "^0.1.0",
+    "boom": "^2.6.1",
     "hapi": "^8.0.0",
     "joi": "^5.0.2",
     "neo4j": "^1.1.1",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "chai": "^1.10.0",
     "chai-as-promised": "^4.1.1",
+    "inject-then": "^2.0.0",
     "mocha": "^2.0.1",
     "mocha-traceur": "^2.0.0",
     "mockery": "^1.4.0",

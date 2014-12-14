@@ -1,26 +1,18 @@
-var expect = require('chai').expect;
-var mockery = require('mockery');
+let expect = require('chai').expect;
+let mockery = require('mockery');
+import {redisData, mockRedis} from '../../mocks/redis';
 
 describe('session service', () => {
-  let Session, redisData;
+  let Session;
 
   beforeEach(() => {
-    redisData = {};
-    let redisMock = {
-      del: (key) => {
-        delete redisData[key];
-        return Promise.resolve();
-      },
-      get: (key) => Promise.resolve(redisData[key]),
-      set: (key, value) => Promise.resolve(redisData[key] = value),
-    };
-    mockery.registerMock('../model/DAL/redis', redisMock);
+    mockRedis();
     mockery.enable({
       warnOnReplace: false,
       warnOnUnregistered: false,
     });
 
-    Session = require('../../lib/services/session').default;
+    Session = require('../../../lib/services/session').default;
   });
 
   afterEach(mockery.disable);
@@ -41,34 +33,41 @@ describe('session service', () => {
     expect(session.data).to.deep.equal({});
   });
 
-  it('should be able to restore saved sessions', (done) => {
+  it('should save sessions with a "session-" prefix', () => {
+    let session = Session.create();
+    return session.save()
+      .then(() => {
+        expect(redisData[`session-${session.id}`]).to.not.be.undefined();
+      });
+  });
+
+  it('should be able to restore saved sessions', () => {
     let session = Session.create();
     let sessionId = session.id;
     let notSaved;
     session.data.userId = 5;
 
-    Session.restore(sessionId)
+    return Session.restore(sessionId)
       .then(session => notSaved = session)
       .then(() => session.save())
       .then(() => Session.restore(sessionId))
       .then((saved) => {
         expect(session.data).to.not.deep.equal(notSaved.data);
         expect(session.data).to.deep.equal(saved.data);
-      })
-      .then(done);
+      });
   });
 
-  it('should be able to destroy sessions', (done) => {
+  it('should be able to destroy sessions', () => {
     let session = Session.create();
     let sessionId = session.id;
     session.data.userId = 5;
 
-    session.save()
+    return session.save()
       .then(() => session.destroy())
       .then(() => Session.restore(sessionId))
       .then((saved) => {
+        expect(session.isDestroyed).to.be.true();
         expect(saved.data).to.be.undefined();
-      })
-      .then(done);
+      });
   });
 });
