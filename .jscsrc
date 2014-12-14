@@ -7,6 +7,7 @@
   "validateIndentation": 2,
   "disallowDanglingUnderscores": null,
   "disallowKeywords": ["with"],
+  "disallowSpacesInsideParentheses": null,
   "disallowSpacesInsideObjectBrackets": true,
   "disallowImplicitTypeConversion": ["string"],
   "disallowTrailingComma": null,
@@ -18,6 +19,7 @@
     "client/app/bower_components/**",
     "client/dist/**",
     "client/node_modules/**",
-    "server/node_modules/**"
+    "server/node_modules/**",
+    "./server/node_modules/**"
   ]
 }
