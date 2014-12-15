@@ -5,3 +5,5 @@ test/temp
 bower_components
 .tmp
 .idea
+
+server/config/spotify_secret.js

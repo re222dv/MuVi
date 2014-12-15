@@ -7,8 +7,11 @@ traceur.require.makeDefault(function (filename) {
   return filename.indexOf('node_modules') === -1;
 });
 
+var oauth = require('./lib/middleware/oauth.js');
 var session = require('./lib/middleware/session.js');
 var routes = require('./lib/routes.js').routes;
+
+var spotify = require('./config/spotify.js');
 
 // creating the hapi server instance
 var server = new hapi.Server();
@@ -21,7 +24,16 @@ server.connection({
 server.route(routes);
 
 if (!module.parent) {
-  server.register(session, function (err) {
+  server.register([
+    session,
+    {
+      register: oauth,
+      options: {
+        host: 'http://localhost:9099',
+        providers: [spotify],
+      }
+    }
+  ], function (err) {
     if (err) throw err;
 
     server.start(function (err) {
