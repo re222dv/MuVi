@@ -1,5 +1,5 @@
-//let autoCurry = require('auto-curry');
-let request = require('request-promise');
+let request = require('request');
+let Rx = require('rx');
 
 let oauthRequest = (token, method, url) => {
   let tokenPromise = Promise.resolve(token.access_token);
@@ -13,14 +13,26 @@ let oauthRequest = (token, method, url) => {
   //  });
   //}
 
-  return tokenPromise
-    .then(accessToken => request({
+  let response = new Rx.Subject();
+
+  tokenPromise
+    .then(accessToken => request(url, {
       method: method,
-      uri: url,
       auth: {
         bearer: accessToken
       },
+    }, (err, result, body) => {
+      if (err) {
+        response.onError(err);
+      } else {
+        response.onNext(body);
+      }
+      response.dispose();
     }));
+
+  console.warn(url);
+
+  return response;
 };
 
 export default oauthRequest;

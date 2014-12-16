@@ -102,7 +102,8 @@ let neo4j = {
   getPlaylist: (id) =>
     new Promise(resolve =>
       db.query(`Match (p:Playlist {id:{id}}),
-                      (p)-[]->(s:Song)-[]->(al:Album)-[]->(ar:Artist)
+                      (p)-->(s:Song)-->(al:Album),
+                      (s)-->(ar:Artist)
                 Optional Match (s)-[]->(v:Video)
                 Return s,al,ar,v`, {id}, promise(resolve)))
       .then(result => {

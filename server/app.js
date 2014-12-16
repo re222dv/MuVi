@@ -20,7 +20,8 @@ var server = new hapi.Server();
 // adding a new connection that can be listened on
 server.connection({
   port: 9099,
-  host: '127.0.0.1'
+  host: '127.0.0.1',
+  routes: {cors: true},
 });
 server.route(routes);
 

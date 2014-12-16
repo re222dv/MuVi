@@ -130,19 +130,20 @@ export default function getPlaylists(token) {
   let spotify = (url) => request(token, 'GET', url);
   let spotifyPath = (path) => spotify(`https://api.spotify.com/v1${path}`);
 
-  Rx.Observable.fromPromise(spotifyPath('/me'))
+  spotifyPath('/me')
     .map(JSON.parse)
     .map(createUser)
-    .flatMap((user, index, observable) =>
-      observable
+    .flatMap(user =>
+      Rx.Observable.of(user)
+        .doOnNext(console.log)
         .map(user => user.id)
         .flatMap(id => spotifyPath(`/users/${id}/playlists`))
         .map(JSON.parse)
         .map(response => response.items)
         .flatMap(createPlaylistsFor(user.entity))
     )
-    .flatMap((playlist, index, observable) =>
-      observable
+    .flatMap(playlist =>
+      Rx.Observable.of(playlist)
         .map(playlist => playlist.tracks)
         .flatMap(spotify)
         .map(JSON.parse)

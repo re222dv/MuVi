@@ -6,7 +6,7 @@ export var routes = [
     method: 'GET',
     path: '/api/playlists',
     handler: (_, reply) => {
-      neo4j.getUserPlaylists('a126fa30-8533-11e4-b604-ed42ab9f968a').then(reply);
+      neo4j.getUserPlaylists('0fd726b0-854a-11e4-b1a9-4523d5a16974').then(reply);
     },
   },
   {
