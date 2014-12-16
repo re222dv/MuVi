@@ -1,6 +1,9 @@
 let base64id = require('base64id');
 let Boom = require('boom');
 let oauth2 = require('simple-oauth2');
+let Rx = require('rx');
+
+var authedTokens = new Rx.Subject();
 
 let register = (server, options, next) => {
   options.providers = options.providers || [];
@@ -50,14 +53,18 @@ let register = (server, options, next) => {
               code: request.query.code,
               state: state
             },
-            (error, result) => {
+            (error, token) => {
               if (error) {
                 return reply(Boom.unauthorized());
               }
 
-              result.expiresAt = Date.now() + result.expires_in * 1000;
-              request.session.oauth[provider.name].token = result;
-              console.log(result);
+              token.expiresAt = Date.now() + token.expires_in * 1000;
+              request.session.oauth[provider.name].token = token;
+              console.log(token);
+              authedTokens.onNext({
+                provider: provider.name,
+                token: token
+              });
               reply('auth');
             }
           );
@@ -97,3 +104,4 @@ register.attributes = {
 };
 
 module.exports = register;
+module.exports.authedTokes = authedTokens;

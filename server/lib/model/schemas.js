@@ -14,16 +14,17 @@ let schemas = {
   }),
   Album: base.keys({
     name: Joi.string(),
-    year: Joi.number().integer(),
-    popularity: Joi.number().integer(),
+    //year: Joi.number().integer(),
+    albumType: Joi.string(),
+    //popularity: Joi.number().integer(),
   }),
   Artist: base.keys({
     name: Joi.string(),
-    popularity: Joi.number().integer(),
+    //popularity: Joi.number().integer(),
   }),
   Genre: base.keys({
     name: Joi.string(),
-    popularity: Joi.number().integer(),
+    //popularity: Joi.number().integer(),
   }),
   Playlist: base.keys({
     name: Joi.string(),

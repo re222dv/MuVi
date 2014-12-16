@@ -10,6 +10,7 @@ traceur.require.makeDefault(function (filename) {
 var oauth = require('./lib/middleware/oauth.js');
 var session = require('./lib/middleware/session.js');
 var routes = require('./lib/routes.js').routes;
+var spotifyService = require('./lib/services/spotify.js');
 
 var spotify = require('./config/spotify.js');
 
@@ -42,5 +43,11 @@ if (!module.parent) {
     });
   });
 }
+
+oauth.authedTokes
+  .do(function () {console.warn('app');})
+  .filter(function (token) {return token.provider === 'spotify';})
+  .map(function (token) {return token.token;})
+  .subscribe(spotifyService);
 
 module.exports = server;
