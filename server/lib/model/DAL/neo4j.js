@@ -94,9 +94,9 @@ let neo4j = {
       .then(result => result.map(row => row.n._data.data));
   },
 
-  getUsersPlaylists: (userId) =>
+  getUserPlaylists: (userId) =>
     new Promise(resolve =>
-      db.query('Match (:User {id:{userId}})-[]->(p:Playlist) Return p', {userId}, promise(resolve)))
+      db.query('Match (:User {id:{userId}})-->(p:Playlist) Return p', {userId}, promise(resolve)))
       .then(result => result.map(row => row.p._data.data)),
 
   getPlaylist: (id) =>

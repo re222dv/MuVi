@@ -4,43 +4,14 @@ import spotify from './model/DAL/spotify.js';
 export var routes = [
   {
     method: 'GET',
-    path: '/api/test',
+    path: '/api/playlists',
     handler: (_, reply) => {
-      console.log('here');
-      let song = {
-        type: 'Song',
-        name: 'Test',
-        durationMs: 500,
-        number: 1,
-        popularity: 50,
-      };
-      let album = {
-        type: 'Album',
-        name: 'Test',
-        year: 2014,
-        popularity: 50,
-      };
-      let artist = {
-        type: 'Artist',
-        name: 'Test',
-        popularity: 50,
-      };
-      let playlist = {
-        type: 'Playlist',
-        name: 'Test',
-      };
-      neo4j.create([
-        song, album, artist, playlist
-      ], [
-        {start: song, end: album, label: 'Album'},
-        {start: album, end: artist, label: 'Artist'},
-        {start: playlist, end: song, label: 'Song'},
-      ]).then(() => reply('saved')).catch(err => {throw err;});
+      neo4j.getUserPlaylists('a126fa30-8533-11e4-b604-ed42ab9f968a').then(reply);
     },
   },
   {
     method: 'GET',
-    path: '/api/playlist/{id}',
+    path: '/api/playlists/{id}',
     handler: (request, reply) =>
       neo4j.getPlaylist(request.params.id).then(reply),
   },
