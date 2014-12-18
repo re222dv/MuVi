@@ -60,7 +60,7 @@ let register = (server, options, next) => {
 
               token.expiresAt = Date.now() + token.expires_in * 1000;
               request.session.oauth[provider.name].token = token;
-              console.log(token);
+              //console.log(token);
               authedTokens.onNext({
                 provider: provider.name,
                 token: token
@@ -79,7 +79,6 @@ let register = (server, options, next) => {
             .map(provider => request.session.oauth[provider])
             .filter(provider => provider.token)
             .forEach(provider => {
-              console.log('set up');
               provider.token.expires_in = provider.token.expiresAt - Date.now();
               let token = providerConfig.accessToken.create(provider.token);
               provider.token.expired = token.expired;
@@ -88,7 +87,7 @@ let register = (server, options, next) => {
             });
         }
       } catch (e) {
-        console.log(e);
+        console.error(e);
       }
 
       reply.continue();

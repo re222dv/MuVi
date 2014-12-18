@@ -41,6 +41,9 @@ let schemas = {
   User: base.keys({
     name: Joi.string(),
   }),
+  FreebaseEntity: base.keys({
+    mid: Joi.string(),
+  }),
   SpotifyEntity: base.keys({
     spotifyId: Joi.string(),
     spotifyType: Joi.string(),

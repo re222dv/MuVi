@@ -1,156 +1,140 @@
-let Rx = require('rx');
 import request from '../../services/oauth_request.js';
 
-export default function getPlaylists(token) {
-  let downloaded = new Rx.Subject();
+/**
+ * @param {OAuthToken} token
+ * @param {string} path
+ * @returns {Rx.Observable<string>}
+ */
+let spotifyPath = (token, path) => request(token, 'GET', `https://api.spotify.com/v1${path}`);
 
-  let createSpotifyEntity = (callback) => (entity) => {
-    let spotifyEntity = {
-      type: 'SpotifyEntity',
-      spotifyId: entity.id,
-      spotifyType: entity.type,
-    };
-    return callback(spotifyEntity, entity);
-  };
+/**
+ * A wrapper that creates a SpotifyEntity from a spotify object.
+ * Callback is called with (SpotifyEntity, spotifyObject)
+ */
+let createSpotifyEntity = (callback) => (entity) => callback({
+  type: 'SpotifyEntity',
+  spotifyId: entity.id,
+  spotifyType: entity.type,
+}, entity);
 
-  let createUser = createSpotifyEntity((spotifyEntity, user) => {
-    console.log('Create user');
-    let entities = [{
-      type: 'User',
-      name: user.display_name,
-    }, spotifyEntity];
+let createMusicEntities = (songs) => {
+  let entities = [];
+  let relations = [];
 
-    downloaded.onNext({entities, relations: [{start: entities[0], end: spotifyEntity}]});
-    return {entity: entities[0], id: spotifyEntity.spotifyId};
-  });
+  let albums = [];
+  let artists = [];
 
-  let createPlaylistsFor = (user) => (playlists) => {
-    let entities = [user];
-    let relations = [];
+  songs.forEach(createSpotifyEntity((spotifyEntity, song) => {
+    let songEntities = [{
+      type: 'Song',
+      name: song.name,
+      popularity: song.popularity,
+      durationMs: song.duration_ms,
+      number: song.track_number,
+    },  spotifyEntity];
+    let songRelations = [{start: songEntities[0], end: spotifyEntity}];
 
-    playlists.forEach(createSpotifyEntity((spotifyEntity, playlist) => {
-      let entity = {
-        type: 'Playlist',
-        name: playlist.name,
-      };
-
-      entities.push(entity);
-      entities.push(spotifyEntity);
-      relations.push({start: user, end: entities[entities.length - 2]});
-      relations.push({start: entity, end: spotifyEntity});
-    }));
-
-    downloaded.onNext({entities, relations});
-    return playlists.map((playlist, index) => ({
-      entity: entities[index * 2 + 1], // Account for the SpotifyEntity and User
-      tracks: playlist.tracks.href,
-    }));
-  };
-
-  let createMusicEntitiesFor = (playlist) => (songs) => {
-    let entities = [playlist];
-    let relations = [];
-
-    let albums = [];
-    let artists = [];
-
-    songs.forEach(createSpotifyEntity((spotifyEntity, song) => {
-      let songEntities = [{
-        type: 'Song',
-        name: song.name,
-        popularity: song.popularity,
-        durationMs: song.duration_ms,
-        number: song.track_number,
-      },  spotifyEntity
-      ];
-      let songRelations = [
-        {start: playlist, end: songEntities[0]},
-        {start: songEntities[0], end: spotifyEntity},
-      ];
-
-      if (albums.indexOf(song.album.id) === -1) { // The album haven't been instantiated
+    if (albums.indexOf(song.album.id) === -1) { // The album haven't been instantiated
+      (createSpotifyEntity((spotifyEntity, album) => {
         songEntities = songEntities.concat([{
           type: 'Album',
-          name: song.album.name,
+          name: album.name,
           //year: song.album.release_date.split('-', 1)[0], // Only get the year
-          albumType: song.album.album_type,
-        }, {
-          type: 'SpotifyEntity',
-          spotifyId: song.album.id,
-          spotifyType: song.album.type,
-        }]);
+          albumType: album.album_type,
+        }, spotifyEntity]);
         songRelations = songRelations.concat([
           {start: songEntities[0], end: songEntities[2]}, // Song to Album
           {start: songEntities[2], end: songEntities[3]}, // Album to SpotifyEntity
         ]);
         albums.push(song.album.id);
+      }))(song.album);
+    } else {
+      let album = relations // Get the instantiated album
+        .filter(relation => relation.start.type === 'Album')
+        .filter(relation => relation.end.type === 'SpotifyEntity')
+        .filter(relation => relation.end.spotifyId === song.album.id)
+        .map(relation => relation.start)[0];
+
+      songRelations.push({start: songEntities[0], end: album}); // Song to Album
+    }
+
+    song.artists.forEach(createSpotifyEntity((spotifyEntity, artist) => {
+      if (artists.indexOf(artist.id) === -1) { // The artist haven't been instantiated
+        let artistEntities = [{
+          type: 'Artist',
+          name: artist.name,
+        }, spotifyEntity];
+
+        songEntities = songEntities.concat(artistEntities);
+        songRelations = songRelations.concat([
+          {start: songEntities[0], end: artistEntities[0]}, // Song to Artist
+          {start: artistEntities[0], end: spotifyEntity}
+        ]);
+        artists.push(artist.id);
       } else {
-        let album = relations
-          .filter(relation => relation.start.type === 'Album')
+        let oldArtist = relations // Get the instantiated artist
+          .filter(relation => relation.start.type === 'Artist')
           .filter(relation => relation.end.type === 'SpotifyEntity')
-          .filter(relation => relation.end.spotifyId === song.album.id)
+          .filter(relation => relation.end.spotifyId === artist.id)
           .map(relation => relation.start)[0];
 
-        songRelations.push({start: songEntities[0], end: album}); // Song to Album
+        songRelations.push({start: songEntities[0], end: oldArtist}); // Song to Artist
       }
-
-      song.artists
-        .forEach(createSpotifyEntity((spotifyEntity, artist) => {
-          if (artists.indexOf(artist.id) === -1) {
-            // The artist haven't been instantiated
-            let artistEntities = [{
-              type: 'Artist',
-              name: artist.name,
-            }, spotifyEntity];
-
-            songEntities = songEntities.concat(artistEntities);
-            songRelations = songRelations.concat([
-              {start: songEntities[0], end: artistEntities[0]}, // Song to Artist
-              {start: artistEntities[0], end: spotifyEntity}
-            ]);
-            artists.push(artist.id);
-          } else {
-            let oldArtist = relations
-              .filter(relation => relation.start.type === 'Artist')
-              .filter(relation => relation.end.type === 'SpotifyEntity')
-              .filter(relation => relation.end.spotifyId === artist.id)
-              .map(relation => relation.start)[0];
-
-            songRelations.push({start: songEntities[0], end: oldArtist}); // Song to Artist
-          }
-        }));
-
-      entities = entities.concat(songEntities);
-      relations = relations.concat(songRelations);
     }));
 
-    downloaded.onNext({entities, relations});
-  };
+    entities = entities.concat(songEntities);
+    relations = relations.concat(songRelations);
+  }));
 
-  let spotify = (url) => request(token, 'GET', url);
-  let spotifyPath = (path) => spotify(`https://api.spotify.com/v1${path}`);
+  return {entities, relations};
+};
 
-  spotifyPath('/me')
+/**
+ * Get the current user
+ * @param {OAuthToken} token
+ * @returns Rx.Observable<{{user: User, spotifyEntity: SpotifyEntity}}>
+ */
+export function getUser(token) {
+  return spotifyPath(token, '/me')
     .map(JSON.parse)
-    .map(createUser)
-    .flatMap(user =>
-      Rx.Observable.of(user)
-        .doOnNext(console.log)
-        .map(user => user.id)
-        .flatMap(id => spotifyPath(`/users/${id}/playlists`))
-        .map(JSON.parse)
-        .map(response => response.items)
-        .flatMap(createPlaylistsFor(user.entity))
-    )
-    .flatMap(playlist =>
-      Rx.Observable.of(playlist)
-        .map(playlist => playlist.tracks)
-        .flatMap(spotify)
-        .map(JSON.parse)
-        .map(response => response.items.map(item => item.track))
-        .map(createMusicEntitiesFor(playlist.entity))
-    )
-    .subscribe();
+    .map(createSpotifyEntity((spotifyEntity, user) => ({
+      user: {
+        type: 'User',
+        name: user.display_name,
+      },
+      spotifyEntity,
+    })));
+}
 
-  return downloaded;
+/**
+ * Get playlists for user
+ * @param {OAuthToken} token
+ * @param {string} userId Spotify id for the user
+ * @returns Rx.Observable<{{playlist: Playlist, spotifyEntity: SpotifyEntity}}>
+ */
+export function getPlaylists(token, userId) {
+  return spotifyPath(token, `/users/${userId}/playlists`)
+    .map(JSON.parse)
+    .flatMap(response => response.items)
+    .map(createSpotifyEntity((spotifyEntity, playlist) => ({
+      playlist: {
+        type: 'Playlist',
+        name: playlist.name,
+      },
+      tracks: playlist.tracks.href,
+      spotifyEntity,
+    })));
+}
+
+/**
+ * Get playlists for user
+ * @param {OAuthToken} token
+ * @param {string} url The url to the playlist tracks resource
+ * @returns Rx.Observable<Array.<{entities: Song|Album|Artist|SpotifyEntity, relations: Relation}>>
+ */
+export function getPlaylist(token, url) {
+  return request(token, 'GET', url)
+    .map(JSON.parse)
+    .map(response => response.items.map(item => item.track))
+    .map(createMusicEntities);
 }

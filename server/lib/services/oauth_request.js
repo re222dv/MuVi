@@ -1,6 +1,13 @@
 let request = require('request');
 let Rx = require('rx');
 
+/**
+ * Requests a http resource with OAuth authorization
+ * @param {OAuthToken} token
+ * @param {string} method
+ * @param {string} url
+ * @returns {Rx.Observable<string>}
+ */
 let oauthRequest = (token, method, url) => {
   let tokenPromise = Promise.resolve(token.access_token);
   //if (token.expired()) {
@@ -15,6 +22,7 @@ let oauthRequest = (token, method, url) => {
 
   let response = new Rx.Subject();
 
+  console.warn(url);
   tokenPromise
     .then(accessToken => request(url, {
       method: method,
@@ -27,10 +35,9 @@ let oauthRequest = (token, method, url) => {
       } else {
         response.onNext(body);
       }
+      response.onCompleted();
       response.dispose();
     }));
-
-  console.warn(url);
 
   return response;
 };

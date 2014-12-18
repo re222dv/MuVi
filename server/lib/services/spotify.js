@@ -1,6 +1,13 @@
+let autoCurry = require('auto-curry');
 let Rx = require('rx');
 import entitiesFromSpotify from '../model/DAL/spotify.js';
+import {getArtist} from '../model/DAL/freebase.js';
+import {getUser, getPlaylists, getPlaylist} from '../model/DAL/spotify.js';
 import neo4j from '../model/DAL/neo4j.js';
+
+let relate = autoCurry((entity, label, otherEntity) => ({
+  start: entity, end: otherEntity, label: label
+}));
 
 let newEntities = (entities) =>
   // Get all existing SpotifyEntities with same Spotify id as any of the new
@@ -34,8 +41,78 @@ let newEntities = (entities) =>
     return {entities: entities.entities, relations: entities.relations};
   });
 
-module.exports = Rx.Observer.create(token =>
-  entitiesFromSpotify(token)
-    .flatMap(newEntities)
-    .subscribe(entities => neo4j.create(entities.entities, entities.relations))
-);
+module.exports = Rx.Observer.create(token => {
+  getUser(token)
+    .subscribe(spotifyProfile => {
+      neo4j.getEntities('SpotifyEntity', 'spotifyId', spotifyProfile.spotifyEntity.spotifyId)
+        .then(existingUsers => existingUsers.length > 0)
+        .then(userExists => {
+          if (false && userExists) {
+            // TODO
+            console.log('User exists');
+          } else {
+            let data = {
+              entities: [spotifyProfile.user, spotifyProfile.spotifyEntity],
+              relations: [relate(spotifyProfile.user, 'is', spotifyProfile.spotifyEntity)],
+            };
+
+            return getPlaylists(token, spotifyProfile.spotifyEntity.spotifyId)
+              .flatMap(playlist => {
+                data.entities = data.entities.concat([playlist.playlist, playlist.spotifyEntity]);
+                data.relations = data.relations.concat([
+                  relate(spotifyProfile.user, 'owns', playlist.playlist),
+                  relate(playlist.playlist, 'is', playlist.spotifyEntity),
+                ]);
+
+                return getPlaylist(token, playlist.tracks)
+                  .doOnError(console.log)
+                  .doOnNext(playlistData => {
+                    data.entities = data.entities.concat(playlistData.entities);
+                    data.relations = data.relations
+                      .concat(playlistData.relations)
+                      .concat(playlistData.entities
+                        .filter(entity => entity.type === 'Song')
+                        .map(relate(playlist.playlist, 'contains'))
+                      );
+                  });
+              })
+              .doOnError(console.log)
+              .subscribeOnCompleted(() => {
+                newEntities(data)
+                  .then(data => {
+                    let newArtists = data.entities
+                      .filter(entity => entity.id === undefined)
+                      .filter(entity => entity.type === 'Artist');
+
+                    let freebaseArtists = newArtists
+                      .map(artist => artist.name)
+                      .map(getArtist);
+
+                    Promise.all([
+                      neo4j.create(data.entities, data.relations)
+                    ].concat(freebaseArtists))
+                      .then(promises => promises.slice(1))
+                      .then(freebaseArtists => {
+                        let data = {
+                          entities: newArtists.concat(
+                            freebaseArtists.filter(artist => artist !== undefined)
+                          ),
+                          relations: [],
+                        };
+                        newArtists.forEach((artist, index) => {
+                          if (freebaseArtists[index] !== undefined) {
+                            data.relations.push(relate(artist, 'is', freebaseArtists[index]));
+                          }
+                        });
+
+                        return neo4j.create(data.entities, data.relations);
+                      })
+                      .catch(console.error)
+                    ;
+                  });
+              });
+          }
+        })
+        .catch(console.log);
+    });
+});

@@ -9,6 +9,7 @@
   "author": "",
   "license": "AGPL",
   "dependencies": {
+    "auto-curry": "^0.2.0",
     "base64id": "^0.1.0",
     "boom": "^2.6.1",
     "hapi": "^8.0.0",
@@ -16,6 +17,7 @@
     "neo4j": "^1.1.1",
     "node-uuid": "^1.4.2",
     "request": "^2.51.0",
+    "request-promise": "^0.3.2",
     "simple-oauth2": "^0.2.1",
     "then-redis": "^1.1.0",
     "traceur": "0.0.79"

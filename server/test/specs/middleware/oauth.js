@@ -171,7 +171,6 @@ describe('oauth middleware', () => {
         Cookie: `sessionId=${request.sessionObject.id};`
       }}))
       .then(() => {
-        console.log(request.session.oauth.spotify.token);
         let token = request.session.oauth.spotify.token;
         expect(token).to.ok();
         expect(token.expires_in).to.be.within(3500 * 1000, 3600 * 1000);
