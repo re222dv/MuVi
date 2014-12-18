@@ -1,5 +1,5 @@
 let request = require('request-promise');
-import {key} from '../../../config/freebase_secret.js';
+import {key} from '../../../config/google_secret.js';
 
 export function getArtist(name) {
   let params = {

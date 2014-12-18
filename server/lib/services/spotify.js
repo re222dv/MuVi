@@ -3,6 +3,7 @@ let Rx = require('rx');
 import entitiesFromSpotify from '../model/DAL/spotify.js';
 import {getArtist} from '../model/DAL/freebase.js';
 import {getUser, getPlaylists, getPlaylist} from '../model/DAL/spotify.js';
+import {getVideo} from '../model/DAL/youtube.js';
 import neo4j from '../model/DAL/neo4j.js';
 
 let relate = autoCurry((entity, label, otherEntity) => ({
@@ -88,7 +89,7 @@ module.exports = Rx.Observer.create(token => {
                       .map(artist => artist.name)
                       .map(getArtist);
 
-                    Promise.all([
+                    return Promise.all([
                       neo4j.create(data.entities, data.relations)
                     ].concat(freebaseArtists))
                       .then(promises => promises.slice(1))
@@ -109,7 +110,35 @@ module.exports = Rx.Observer.create(token => {
                       })
                       .catch(console.error)
                     ;
-                  });
+                  })
+                  .then(() =>
+                    neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
+                                 Optional Match (:YouTubeVideo)<-[r]-(song:Song)
+                                 Where r is null
+                                 Return song, artist`)
+                  )
+                  .then(rows => Promise.all(
+                    rows.map(row => getVideo(row.song, row.artist.mid))
+                  ))
+                  .then(videos => {
+                    let data = {
+                      entities: [],
+                      relations: [],
+                    };
+                    videos
+                      .filter(video => video !== undefined)
+                      .forEach(video => {
+                        data.entities.push(video.song);
+                        data.entities.push(video.video);
+                        data.entities.push(video.thumbnail);
+
+                        data.relations.push(relate(video.song, 'video', video.video));
+                        data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
+                      });
+
+                    return neo4j.create(data.entities, data.relations);
+                  })
+                  .catch(console.error);
               });
           }
         })

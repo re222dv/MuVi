@@ -34,10 +34,6 @@ let schemas = {
     width: Joi.number().integer(),
     height: Joi.number().integer(),
   }),
-  Video: base.keys({
-    service: Joi.string(),
-    data: Joi.object(),
-  }),
   User: base.keys({
     name: Joi.string(),
   }),
@@ -47,6 +43,9 @@ let schemas = {
   SpotifyEntity: base.keys({
     spotifyId: Joi.string(),
     spotifyType: Joi.string(),
+  }),
+  YouTubeVideo: base.keys({
+    youtubeId: Joi.string(),
   }),
 };
 
