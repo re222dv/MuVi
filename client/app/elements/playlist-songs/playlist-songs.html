@@ -1,0 +1,23 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../../bower_components/google-youtube/google-youtube.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<polymer-element name="playlist-songs" attributes="playlistId">
+  <template>
+    <link rel="stylesheet" href="playlist-songs.css">
+    <core-ajax id="ajax"
+               handleAs="json"
+               response="{{response}}"></core-ajax>
+    <template repeat="{{song in response.songs}}">
+      <paper-item on-click="{{play}}" data-videoid="{{song.video.youtubeId}}">{{song.name}}</paper-item>
+    </template>
+    <google-youtube
+      id="youtube"
+      height="270px"
+      width="480px"
+      rel="0">
+    </google-youtube>
+  </template>
+  <script src="playlist-songs.js"></script>
+</polymer-element>

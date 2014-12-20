@@ -6,4 +6,6 @@ bower_components
 .tmp
 .idea
 
+server/config/google_secret.js
 server/config/spotify_secret.js
+

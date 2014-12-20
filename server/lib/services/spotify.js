@@ -48,7 +48,7 @@ module.exports = Rx.Observer.create(token => {
       neo4j.getEntities('SpotifyEntity', 'spotifyId', spotifyProfile.spotifyEntity.spotifyId)
         .then(existingUsers => existingUsers.length > 0)
         .then(userExists => {
-          if (false && userExists) {
+          if (userExists) {
             // TODO
             console.log('User exists');
           } else {
