@@ -2,6 +2,10 @@
   'use strict';
 
   Polymer('video-player', {
+    fullscreen: false,
+    toggleFullscreen: function () {
+      this.fullscreen = !this.fullscreen;
+    },
     play: function () {
       this.$.music.play();
     },
@@ -16,7 +20,10 @@
     },
     songChange: function (_, nowPlaying) {
       console.log(nowPlaying);
-      this.$.youtube.setAttribute('videoid', nowPlaying.video.youtubeId);
+      this.song = nowPlaying;
+      //this.song = nowPlaying.name;
+      //this.artist = nowPlaying.artist.name;
+      //this.$.youtube.setAttribute('videoid', nowPlaying.video.youtubeId);
       this.async(() => this.videoLoaded = true);
     },
     statusChange: function (_, playing) {

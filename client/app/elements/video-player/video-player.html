@@ -13,25 +13,32 @@
       on-status-change="{{statusChange}}"
       playing="{{playing}}">
     </service-now-playing>
-    <google-youtube
-      id="youtube"
-      controls="0"
-      rel="0"
-      showinfo="0"
-      fluid
-      on-google-youtube-state-change="{{videoState}}"
-      state="{{state}}"
-      hidden?="{{!videoLoaded}}">
-    </google-youtube>
-    <div class="controls" hidden?="{{!videoLoaded}}">
-      <paper-icon-button icon="av:skip-previous" on-click="{{previous}}"></paper-icon-button>
-      <template if="{{playing}}">
-        <paper-icon-button icon="av:pause" on-click="{{pause}}"></paper-icon-button>
-      </template>
-      <template if="{{!playing}}">
-        <paper-icon-button icon="av:play-arrow" on-click="{{play}}"></paper-icon-button>
-      </template>
-      <paper-icon-button icon="av:skip-next" on-click="{{next}}"></paper-icon-button>
+    <div class="video" hidden?="{{!videoLoaded}}" fullscreen?="{{fullscreen}}">
+      <div class="video-wrapper" layout horizontal center>
+        <google-youtube
+          videoid="{{song.video.youtubeId}}"
+          id="youtube"
+          controls="0"
+          rel="0"
+          showinfo="0"
+          fluid
+          on-google-youtube-state-change="{{videoState}}"
+          state="{{state}}">
+        </google-youtube>
+      </div>
+      <div class="controls" layout horizontal center>
+        <paper-icon-button icon="av:skip-previous" on-click="{{previous}}"></paper-icon-button>
+        <paper-icon-button icon="av:play-arrow" on-click="{{play}}" hidden?="{{playing}}"></paper-icon-button>
+        <paper-icon-button icon="av:pause" on-click="{{pause}}" hidden?="{{!playing}}"></paper-icon-button>
+        <paper-icon-button icon="av:skip-next" on-click="{{next}}"></paper-icon-button>
+        <div class="info" layout vertical hidden?="{{!fullscreen}}">
+          <h5>{{song.name}}</h5>
+          <h6>{{song.artist.name}}</h6>
+        </div>
+        <div flex></div>
+        <paper-icon-button icon="fullscreen" on-click="{{toggleFullscreen}}" hidden?="{{fullscreen}}"></paper-icon-button>
+        <paper-icon-button icon="fullscreen-exit" on-click="{{toggleFullscreen}}" hidden?="{{!fullscreen}}"></paper-icon-button>
+      </div>
     </div>
   </template>
   <script src="video-player.js"></script>
