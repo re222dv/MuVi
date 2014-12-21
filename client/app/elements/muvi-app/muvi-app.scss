@@ -1,3 +1,15 @@
+@import "../../styles/Material/definitions";
+
 :host {
   display: block;
+}
+
+core-toolbar {
+  @include font-headline;
+  background-color: $primary-color;
+}
+
+core-header-panel {
+  color: #ffffff;
+  background-color: $background-color;
 }

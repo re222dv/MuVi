@@ -1,0 +1,26 @@
+$device-width: 992 !default;
+$tablet-width: 768 !default;
+$mobile-width: 375 !default;
+
+$device-desktop: "only screen and (min-width: " + $device-width + "px)";
+$device-tablet: "only screen and (min-width: " + $tablet-width + "px)";
+$device-mobile: "only screen and (min-width: " + $mobile-width + "px)";
+
+$type-gu: 4px;
+$component-gu: 8px;
+
+$mobile-vertical-keyline: 16px;
+$tablet-vertical-keyline: 24px;
+
+$mobile-main-separator-height: 8px;
+$tablet-main-separator-height: 24px;
+$separator-height: 8px;
+$list-heading-height: 48dp;
+$list-icon-diameter: 40px;
+$mobile-list-item-min-height: 48px;
+$tablet-list-item-min-height: 64px;
+$mobile-list-item-with-icon-margin: 72px;
+$tablet-list-item-with-icon-margin: 80px;
+
+$min-touch-target: 48px;
+

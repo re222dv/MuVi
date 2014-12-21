@@ -1,0 +1,93 @@
+@import "colors";
+@import "metrics";
+
+$font-weight-light:   300;
+$font-weight-regular: 400;
+$font-weight-medium:  500;
+
+@mixin font-display-4 {
+    color: $secondary-text-color;
+    font-size: 112px;
+    font-weight: $font-weight-light;
+    letter-spacing: -0.1rem;
+}
+
+@mixin font-display-3 {
+    color: $secondary-text-color;
+    font-size: 56px;
+    font-weight: $font-weight-regular;
+    letter-spacing: -0.05rem;
+}
+
+@mixin font-display-2 {
+    color: $secondary-text-color;
+    font-size: 45px;
+    font-weight: $font-weight-regular;
+}
+
+@mixin font-display-1 {
+    color: $secondary-text-color;
+    font-size: 34px;
+    font-weight: $font-weight-regular;
+}
+
+@mixin font-headline {
+    color: $text-color;
+    font-size: 24px;
+    font-weight: $font-weight-regular;
+}
+
+@mixin font-title {
+    color: $text-color;
+    font-size: 20px;
+    font-weight: $font-weight-medium;
+    letter-spacing: 0.05rem;
+}
+
+@mixin font-subhead {
+    color: $text-color;
+    font-size: 16px;
+    font-weight: $font-weight-regular;
+    letter-spacing: 0.1rem;
+
+    @media #{$device-desktop} {
+        font-size: 15px;
+    }
+}
+
+@mixin font-body-2 {
+    color: $text-color;
+    font-size: 14px;
+    font-weight: $font-weight-medium;
+    letter-spacing: 0.1rem;
+
+    @media #{$device-desktop} {
+        font-size: 13px;
+    }
+}
+
+@mixin font-body-1 {
+    color: $text-color;
+    font-size: 14px;
+    font-weight: $font-weight-regular;
+    letter-spacing: 0.1rem;
+
+    @media #{$device-desktop} {
+        font-size: 13px;
+    }
+}
+
+@mixin font-caption {
+    color: $secondary-text-color;
+    font-size: 12px;
+    font-weight: $font-weight-regular;
+    letter-spacing: 0.2rem;
+}
+
+@mixin font-button {
+    color: $text-color;
+    font-size: 14px;
+    font-weight: $font-weight-medium;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+}

@@ -20,9 +20,10 @@
       showinfo="0"
       fluid
       on-google-youtube-state-change="{{videoState}}"
-      state="{{state}}">
+      state="{{state}}"
+      hidden?="{{!videoLoaded}}">
     </google-youtube>
-    <div>
+    <div class="controls" hidden?="{{!videoLoaded}}">
       <paper-icon-button icon="av:skip-previous" on-click="{{previous}}"></paper-icon-button>
       <template if="{{playing}}">
         <paper-icon-button icon="av:pause" on-click="{{pause}}"></paper-icon-button>

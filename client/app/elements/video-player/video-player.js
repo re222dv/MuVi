@@ -14,18 +14,10 @@
     previous: function () {
       this.$.music.previous();
     },
-    //playingChanged: function (_, playing) {
-    //  console.log(_);
-    //  console.log(playing);
-    //  if (playing && this.state !== 1) { // Playing
-    //    this.$.youtube.play();
-    //  } else if (this.state !== 2) { // Paused
-    //    this.$.youtube.pause();
-    //  }
-    //},
     songChange: function (_, nowPlaying) {
       console.log(nowPlaying);
       this.$.youtube.setAttribute('videoid', nowPlaying.video.youtubeId);
+      this.async(() => this.videoLoaded = true);
     },
     statusChange: function (_, playing) {
       console.log(playing);

@@ -1,0 +1,9 @@
+$dark-background: true;
+
+@import "src/colors";
+@import "src/metrics";
+@import "src/typography";
+
+$primary-color: $purple-600 !default;
+$primary-color-light: $purple-300 !default;
+$accent-color: $orange-A400 !default;
