@@ -28,7 +28,7 @@ module.exports = function (grunt) {
     watch: {
       options: {
         nospawn: true,
-        livereload: { liveCSS: false }
+        livereload: {liveCSS: false}
       },
       livereload: {
         options: {
@@ -45,7 +45,7 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-        tasks: ['jshint']
+        tasks: ['traceur:server']
       },
       styles: {
         files: [
@@ -162,7 +162,7 @@ module.exports = function (grunt) {
     },
     jshint: {
       options: {
-        jshintrc: '.jshintrc',
+        jshintrc: '../.jshintrc',
         reporter: require('jshint-stylish')
       },
       all: [
@@ -186,19 +186,19 @@ module.exports = function (grunt) {
           vulcanized: function (block) {
             return '<link rel="import" href="' + block.dest + '">';
           }
+        },
+        flow: {
+          steps: {
+            js: ['concat', 'traceur', 'uglifyjs'],
+            css: ['concat', 'cssmin']
+          },
+          post: []
         }
       }
     },
     vulcanize: {
-      default: {
-        options: {
-          strip: true
-        },
-        files: {
-          '<%= yeoman.dist %>/elements/elements.vulcanized.html': [
-            '<%= yeoman.dist %>/elements/elements.html'
-          ]
-        }
+      options: {
+        blockBinding: true
       }
     },
     imagemin: {
@@ -271,7 +271,28 @@ module.exports = function (grunt) {
           threshold: 80
         }
       }
-    }
+    },
+    traceur: {
+      options: {
+        modules: 'inline',
+      },
+      custom: {
+        files: [{
+          expand: true,
+          cwd: 'src/es6',
+          src: ['*.js'],
+          dest: 'src/es5'
+        }]
+      },
+      server: {
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.app %>',
+          src: ['scripts/{,*/}*.js', 'elements/{,*/}*.js'],
+          dest: '.tmp'
+        }]
+      }
+    },
   });
 
   grunt.registerTask('server', function (target) {
@@ -287,10 +308,11 @@ module.exports = function (grunt) {
     grunt.task.run([
       'clean:server',
       'sass:server',
+      'traceur:server',
       'copy:styles',
       'autoprefixer:server',
       'connect:livereload',
-      'open',
+      //'open',
       'watch'
     ]);
   });
@@ -315,7 +337,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('default', [
-    'jshint',
+    //'jshint',
     // 'test'
     'build'
   ]);

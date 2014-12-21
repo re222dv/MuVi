@@ -20,6 +20,7 @@
     "unwrap": false,
     "Polymer": false,
     "Platform": false,
+    "Rx": false,
     "describe": false,
     "it": false,
     "before": false,

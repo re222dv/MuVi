@@ -1,0 +1,33 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-icons/av-icons.html">
+<link rel="import" href="../../bower_components/google-youtube/google-youtube.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../elements.html">
+
+<polymer-element name="video-player" attributes="">
+  <template>
+    <link rel="stylesheet" href="video-player.css">
+    <service-now-playing id="music" on-now-playing="{{updateVideo}}" playing="{{playing}}"></service-now-playing>
+    <google-youtube
+      id="youtube"
+      autoplay="1"
+      controls="0"
+      rel="0"
+      showinfo="0"
+      fluid
+      on-google-youtube-state-change="{{videoState}}"
+      >
+    </google-youtube>
+    <div>
+      <paper-icon-button icon="av:skip-previous" on-click="{{previous}}"></paper-icon-button>
+      <template if="{{playing}}">
+        <paper-icon-button icon="av:pause" on-click="{{pause}}"></paper-icon-button>
+      </template>
+      <template if="{{!playing}}">
+        <paper-icon-button icon="av:play-arrow" on-click="{{play}}"></paper-icon-button>
+      </template>
+      <paper-icon-button icon="av:skip-next" on-click="{{next}}"></paper-icon-button>
+    </div>
+  </template>
+  <script src="video-player.js"></script>
+</polymer-element>

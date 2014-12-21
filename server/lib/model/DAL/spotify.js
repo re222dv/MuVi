@@ -25,7 +25,7 @@ let createMusicEntities = (songs) => {
   let artists = [];
 
   songs
-    .filter(song => !!song.id)
+    .filter(song => !!song.id) // Filter out songs without an id
     .forEach(createSpotifyEntity((spotifyEntity, song) => {
       let songEntities = [{
         type: 'Song',
