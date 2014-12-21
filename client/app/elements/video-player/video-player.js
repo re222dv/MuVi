@@ -50,6 +50,40 @@
         }
       }
       console.log('state', state.data);
+    },
+    domReady: function () {
+      let mousemoves = Rx.DOM.fromEvent(this.$.player, 'mousemove')
+        .where(() => this.fullscreen)
+        .where(() => this.playing);
+
+      this.handleControls = mousemoves
+        .subscribe(() => {
+          this.showControls = true;
+
+          mousemoves
+            .takeUntil(mousemoves)
+            .timeout(2000, Promise.resolve(true))
+            .where(data => data === true)
+            .subscribe(() => {
+              this.showControls = false;
+            });
+        });
+
+      this.fullscreenListener = Rx.DOM.dblclick(this.$.player)
+        .subscribe(() => this.toggleFullscreen());
+      this.playbackListener = Rx.DOM.fromEvent(this.$.player, 'click')
+        .subscribe(() => {
+          if (this.playing) {
+            this.pause();
+          } else {
+            this.play();
+          }
+        })
+    },
+    detached: function () {
+      this.handleControls.dispose();
+      this.fullscreenListener.dispose();
+      this.playbackListener.dispose();
     }
   });
 })();
