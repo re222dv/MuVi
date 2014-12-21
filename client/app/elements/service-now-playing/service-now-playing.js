@@ -5,7 +5,8 @@
   let index;
   let playing = false;
 
-  let nowPlayingChange = new Rx.Subject();
+  let songSubject = new Rx.Subject();
+  let statusSubject = new Rx.Subject();
 
   Polymer('service-now-playing', {
     get nowPlaying() {
@@ -13,11 +14,11 @@
     },
     play: function () {
       playing = true;
-      this.updateSong();
+      this.updateStatus();
     },
     pause: function () {
       playing = false;
-      this.updateSong();
+      this.updateStatus();
     },
     next: function () {
       index++;
@@ -27,29 +28,43 @@
       index--;
       this.updateSong();
     },
+    setPlaying: function (isPlaying) {
+      playing = isPlaying;
+      this.updateStatus();
+    },
     playPlaylist: function (playlistId, startSongId) {
       console.log('playPlaylist');
       music.getFreshPlaylist(playlistId)
         .subscribe(playlist => {
           queue = playlist.songs;
           index = queue.findIndex(song => song.id === startSongId);
+          this.updateSong();
           this.play();
           console.log('nowPlayling', this.nowPlaying.name);
         }, err => console.error('Error', err));
     },
     updateSong: function () {
-      console.log('updateSOng');
+      console.log('updateSong');
+      songSubject.onNext(this.nowPlaying);
+    },
+    updateStatus: function () {
+      console.log('updateStatus');
       this.playing = playing;
-      nowPlayingChange.onNext(this.nowPlaying);
+      statusSubject.onNext(playing);
     },
     domReady: function () {
-      this.subscription = nowPlayingChange.subscribeOnNext(update => {
+      this.subscriptionSong = songSubject.subscribeOnNext(update => {
         console.log('domReady');
-        this.fire('now-playing', update);
+        this.fire('song-change', update);
+      });
+      this.subscriptionStatus = statusSubject.subscribeOnNext(update => {
+        console.log('domReady');
+        this.fire('status-change', update);
       });
     },
     detached: function () {
-      this.subscription.dispose();
+      this.subscriptionSong.dispose();
+      this.subscriptionStatus.dispose();
     }
   });
 })(MusicService, Rx);

@@ -16,6 +16,7 @@
   "multistr": true,
   "newcap": false,
   "globals": {
+    "MusicService": false,
     "wrap": false,
     "unwrap": false,
     "Polymer": false,

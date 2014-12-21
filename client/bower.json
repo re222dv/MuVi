@@ -5,9 +5,6 @@
     "core-elements": "Polymer/core-elements#^0.5.1",
     "paper-elements": "Polymer/paper-elements#^0.5.1",
     "polymer": "Polymer/polymer#^0.5.1",
-    "qwest": "~1.4.0",
-    "qajax": "~0.2.4",
-    "q": "~2.0.2",
     "rx-dom": "~4.0.1"
   },
   "devDependencies": {
