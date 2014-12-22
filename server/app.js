@@ -45,7 +45,7 @@ if (!module.parent) {
   });
 }
 
-oauth.authedTokes
+oauth.authedTokens
   .do(function () {console.warn('app');})
   .filter(function (token) {return token.provider === 'spotify';})
   .map(function (token) {return token.token;})

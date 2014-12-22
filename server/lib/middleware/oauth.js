@@ -103,4 +103,4 @@ register.attributes = {
 };
 
 module.exports = register;
-module.exports.authedTokes = authedTokens;
+module.exports.authedTokens = authedTokens;
