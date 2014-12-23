@@ -17,6 +17,7 @@
   "newcap": false,
   "globals": {
     "MusicService": false,
+    "shuffleArray": false,
     "wrap": false,
     "unwrap": false,
     "Polymer": false,

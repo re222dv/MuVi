@@ -84,6 +84,10 @@
       }
     }
 
+    [selected] {
+      color: $primary-color;
+    }
+
     .fullscreen {
       transform: rotate(45deg);
     }

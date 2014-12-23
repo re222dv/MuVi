@@ -1,23 +1,36 @@
 (function() {
   'use strict';
 
+  let stopProp = (callback) => function(event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    return callback.apply(this);
+  };
+
   Polymer('video-player', {
     fullscreen: false,
-    toggleFullscreen: function () {
+    toggleFullscreen: stopProp(function () {
       this.fullscreen = !this.fullscreen;
-    },
-    play: function () {
+    }),
+    toggleRepeat: stopProp(function () {
+      this.$.music.toggleRepeat();
+    }),
+    toggleShuffle: stopProp(function () {
+      this.$.music.toggleShuffle();
+    }),
+    play: stopProp(function () {
       this.$.music.play();
-    },
-    pause: function () {
+    }),
+    pause: stopProp(function () {
       this.$.music.pause();
-    },
-    next: function () {
+    }),
+    next: stopProp(function () {
       this.$.music.next();
-    },
-    previous: function () {
+    }),
+    previous: stopProp(function () {
       this.$.music.previous();
-    },
+    }),
     songChange: function (_, nowPlaying) {
       console.log(nowPlaying);
       this.song = nowPlaying;

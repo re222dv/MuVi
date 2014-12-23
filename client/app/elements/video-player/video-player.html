@@ -11,7 +11,9 @@
       id="music"
       on-song-change="{{songChange}}"
       on-status-change="{{statusChange}}"
-      playing="{{playing}}">
+      playing="{{playing}}"
+      repeat="{{repeat}}"
+      shuffle="{{shuffle}}">
     </service-now-playing>
     <div class="video" hidden?="{{!videoLoaded}}" fullscreen?="{{fullscreen}}">
       <div class="video-wrapper" layout horizontal center>
@@ -37,6 +39,8 @@
             <h6>{{song.artist.name}}</h6>
           </div>
           <div flex></div>
+          <paper-icon-button icon="av:repeat" on-click="{{toggleRepeat}}" selected?="{{repeat}}"></paper-icon-button>
+          <paper-icon-button icon="av:shuffle" on-click="{{toggleShuffle}}" selected?="{{shuffle}}"></paper-icon-button>
           <paper-icon-button icon="fullscreen" on-click="{{toggleFullscreen}}" hidden?="{{fullscreen}}"></paper-icon-button>
           <paper-icon-button icon="fullscreen-exit" on-click="{{toggleFullscreen}}" hidden?="{{!fullscreen}}"></paper-icon-button>
         </div>
