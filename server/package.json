@@ -20,7 +20,8 @@
     "request-promise": "^0.3.2",
     "simple-oauth2": "^0.2.1",
     "then-redis": "^1.1.0",
-    "traceur": "0.0.79"
+    "traceur": "0.0.79",
+    "rx": "~2.3.22"
   },
   "devDependencies": {
     "chai": "^1.10.0",
