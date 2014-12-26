@@ -201,8 +201,16 @@ module.exports = function (grunt) {
       }
     },
     vulcanize: {
-      options: {
-        blockBinding: true
+      default: {
+        options: {
+          strip: true,
+          inline: true
+        },
+        files: {
+          '<%= yeoman.dist %>/elements/elements.vulcanized.html': [
+            '<%= yeoman.dist %>/elements/elements.html'
+          ]
+        }
       }
     },
     imagemin: {
@@ -288,6 +296,14 @@ module.exports = function (grunt) {
           dest: 'src/es5'
         }]
       },
+      dist: {
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.app %>',
+          src: ['scripts/{,*/}*.js', 'elements/{,*/}*.js'],
+          dest: '<%= yeoman.dist %>'
+        }]
+      },
       server: {
         files: [{
           expand: true,
@@ -330,6 +346,7 @@ module.exports = function (grunt) {
     'clean:dist',
     'sass',
     'copy',
+    'traceur:dist',
     'useminPrepare',
     'imagemin',
     'concat',
