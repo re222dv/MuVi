@@ -313,6 +313,21 @@ module.exports = function (grunt) {
         }]
       }
     },
+    rewrite: {
+      localhost: {
+        src: '<%= yeoman.dist %>/**/*',
+        editor: function (contents) {
+          return contents.replace(/http:\/\/localhost:9099/g, '');
+        }
+      },
+      polyfill: {
+        src: '<%= yeoman.dist %>/index.html',
+        editor: function (contents) {
+          return contents.replace(/bower_components\/webcomponentsjs\/webcomponents\.js/g,
+            'bower_components/webcomponentsjs/webcomponents.min.js');
+        }
+      },
+    },
   });
 
   grunt.registerTask('server', function (target) {
@@ -347,6 +362,7 @@ module.exports = function (grunt) {
     'sass',
     'copy',
     'traceur:dist',
+    'rewrite:localhost',
     'useminPrepare',
     'imagemin',
     'concat',
@@ -354,7 +370,8 @@ module.exports = function (grunt) {
     'uglify',
     'vulcanize',
     'usemin',
-    'minifyHtml'
+    'minifyHtml',
+    'rewrite:polyfill',
   ]);
 
   grunt.registerTask('default', [
