@@ -1,0 +1,20 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-icons/av-icons.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../elements.html">
+
+<polymer-element name="now-playing-queue" attributes="playlistId">
+  <template>
+    <link rel="stylesheet" href="now-playing-queue.css">
+    <service-now-playing id="nowPlaying" queue="{{queue}}"
+                         on-song-change="{{songChange}}"></service-now-playing>
+    <template repeat="{{song in queue}}">
+      <paper-item on-click="{{play}}" data-songid="{{song.id}}">
+        <core-icon icon="av:play-circle-fill" title="Now Playing"
+                   hidden?="{{nowPlaying.id != song.id}}"></core-icon>
+        {{song.name}}
+      </paper-item>
+    </template>
+  </template>
+  <script src="now-playing-queue.js"></script>
+</polymer-element>

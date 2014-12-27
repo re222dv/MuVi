@@ -13,3 +13,7 @@ core-header-panel {
   color: #ffffff;
   background-color: $background-color;
 }
+
+paper-icon-button[selected] {
+  color: $accent-color;
+}

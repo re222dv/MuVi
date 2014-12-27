@@ -75,11 +75,16 @@
       music.getFreshPlaylist(playlistId)
         .subscribe(playlist => {
           queue = playlist.songs;
-          index = queue.findIndex(song => song.id === startSongId);
-          this.updateSong();
-          this.play();
-          console.log('nowPlayling', this.nowPlaying.name);
+          this.playSong(startSongId);
         }, err => console.error('Error', err));
+    },
+    playSong: function (songId) {
+      console.log('playSong');
+
+      index = queue.findIndex(song => song.id === songId);
+      this.updateSong();
+      this.play();
+      console.log('nowPlayling', this.nowPlaying.name);
     },
     updateSong: function () {
       console.log('updateSong');
@@ -95,10 +100,12 @@
     domReady: function () {
       this.subscriptionSong = songSubject.subscribeOnNext(update => {
         console.log('domReady');
+        this.queue = queue;
         this.fire('song-change', update);
       });
       this.subscriptionStatus = statusSubject.subscribeOnNext(update => {
         console.log('domReady');
+        this.queue = queue;
         this.fire('status-change', update);
       });
     },

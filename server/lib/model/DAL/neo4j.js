@@ -104,9 +104,10 @@ let neo4j = {
     new Promise(resolve =>
       db.query(`Match (p:Playlist {id:{id}})-->(s:Song)-->(al:Album),
                       (v:YouTubeVideo)<--(s)-->(ar:Artist)
-                Return s,al,ar,v`, {id}, promise(resolve)))
+                Return s,al,ar,v,p`, {id}, promise(resolve)))
       .then(result => {
-        let playlist = {id, songs: []};
+        let playlist = result[0].p._data.data;
+        playlist.songs = [];
         result.forEach(row => {
           row.s._data.data.album = row.al._data.data;
           row.s._data.data.artist = row.ar._data.data;
