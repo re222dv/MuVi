@@ -48,7 +48,6 @@ if (!module.parent) {
 oauth.authedTokens
   .do(function () {console.warn('app');})
   .filter(function (token) {return token.provider === 'spotify';})
-  .map(function (token) {return token.token;})
   .subscribe(spotifyService);
 
 module.exports = server;

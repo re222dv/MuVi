@@ -63,7 +63,8 @@ let register = (server, options, next) => {
               //console.log(token);
               authedTokens.onNext({
                 provider: provider.name,
-                token: token
+                token: token,
+                session: request.sessionObject
               });
               reply('auth');
             }

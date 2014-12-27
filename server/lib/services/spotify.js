@@ -42,15 +42,19 @@ let newEntities = (entities) =>
     return {entities: entities.entities, relations: entities.relations};
   });
 
-module.exports = Rx.Observer.create(token => {
-  getUser(token)
+module.exports = Rx.Observer.create(user => {
+  getUser(user.token)
     .subscribe(spotifyProfile => {
-      neo4j.getEntities('SpotifyEntity', 'spotifyId', spotifyProfile.spotifyEntity.spotifyId)
-        .then(existingUsers => existingUsers.length > 0)
-        .then(userExists => {
-          if (userExists) {
+      neo4j.query(`Match (:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User) Return user`,
+        {spotifyId: spotifyProfile.spotifyEntity.spotifyId}
+      )
+        .then(existingUsers => (existingUsers[0] || {}).user)
+        .then(existingUser => {
+          if (existingUser) {
+            user.session.data.userId = existingUser.id;
             // TODO
             console.log('User exists');
+            return user.session.save();
           } else {
             let data = {
               entities: [spotifyProfile.user, spotifyProfile.spotifyEntity],
@@ -113,8 +117,7 @@ module.exports = Rx.Observer.create(token => {
                   })
                   .then(() =>
                     neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
-                                 Optional Match (:YouTubeVideo)<-[r]-(song:Song)
-                                 Where r is null
+                                 Where not (:YouTubeVideo)<--(song:Song)
                                  Return song, artist`)
                   )
                   .then(rows => Promise.all(

@@ -9,7 +9,8 @@
     <service-now-playing id="nowPlaying"></service-now-playing>
     <core-ajax id="ajax"
                handleAs="json"
-               response="{{response}}"></core-ajax>
+               response="{{response}}"
+               withCredentials></core-ajax>
     <template repeat="{{song in response.songs}}">
       <paper-item on-click="{{play}}" data-songid="{{song.id}}">{{song.name}}</paper-item>
     </template>
