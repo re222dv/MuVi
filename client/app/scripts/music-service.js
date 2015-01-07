@@ -20,7 +20,10 @@
             .subscribe((data) => {
               localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
               working[url].onNext(data);
-            }, working[url].onError, () => {
+            }, () => {
+              working[url].onError();
+              delete working[url];
+            }, () => {
               working[url].onCompleted();
               working[url].dispose();
               delete working[url];
