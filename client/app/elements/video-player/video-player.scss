@@ -93,3 +93,13 @@
     }
   }
 }
+
+#time {
+  padding: 0 2rem;
+}
+
+paper-slider::shadow {
+  #sliderBar::shadow #activeProgress, #sliderKnobInner {
+    background-color: $primary-color;
+  }
+}

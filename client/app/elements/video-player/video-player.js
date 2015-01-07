@@ -31,6 +31,10 @@
     previous: stopProp(function () {
       this.$.music.previous();
     }),
+    seek: function (e) {
+      console.log(e.target.immediateValue);
+      this.$.youtube.seekTo(e.target.immediateValue);
+    },
     songChange: function (_, nowPlaying) {
       console.log(nowPlaying);
       this.song = nowPlaying;
@@ -64,6 +68,7 @@
       }
       console.log('state', state.data);
     },
+    stopProp: stopProp(function () {}),
     domReady: function () {
       let mousemoves = Rx.DOM.fromEvent(this.$.player, 'mousemove')
         .where(() => this.fullscreen)
