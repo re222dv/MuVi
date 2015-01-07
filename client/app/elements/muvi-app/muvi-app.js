@@ -7,7 +7,7 @@
     playlistClick: function (event) {
       console.log(event.target.getAttribute('data-id'));
       this.playlistId = event.target.getAttribute('data-id');
-      music.getFreshPlaylist(this.playlistId).subscribeOnNext(playlist => {
+      music.getPlaylist(this.playlistId).subscribe(playlist => {
         console.log(playlist);
         this.queue = false;
         this.playlistName = playlist.name;
@@ -15,6 +15,10 @@
     },
     toggleQueue: function () {
       this.queue = !this.queue;
+    },
+    domReady: function () {
+      music.getPlaylists()
+        .subscribe(playlists => this.playlists = playlists);
     }
   });
 })(MusicService);

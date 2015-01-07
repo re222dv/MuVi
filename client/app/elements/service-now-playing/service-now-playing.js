@@ -72,7 +72,7 @@
     },
     playPlaylist: function (playlistId, startSongId) {
       console.log('playPlaylist');
-      music.getFreshPlaylist(playlistId)
+      music.getPlaylist(playlistId)
         .subscribe(playlist => {
           queue = playlist.songs;
           this.playSong(startSongId);

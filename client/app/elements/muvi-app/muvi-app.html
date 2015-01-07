@@ -16,11 +16,11 @@
         <core-toolbar>
           <div>Playlists</div>
         </core-toolbar>
-        <core-ajax url="http://localhost:9099/api/playlists"
-                   handleAs="json"
-                   response="{{response}}"
-                   auto withCredentials></core-ajax>
-        <template repeat="{{playlist in response}}">
+        <!--<core-ajax url="http://localhost:9099/api/playlists"-->
+                   <!--handleAs="json"-->
+                   <!--response="{{response}}"-->
+                   <!--auto withCredentials></core-ajax>-->
+        <template repeat="{{playlist in playlists}}">
           <paper-item on-click="{{playlistClick}}" data-id="{{playlist.id}}">{{playlist.name}}</paper-item>
         </template>
       </core-header-panel>

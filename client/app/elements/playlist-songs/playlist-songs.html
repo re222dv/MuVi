@@ -1,5 +1,4 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../elements.html">
 
@@ -7,11 +6,7 @@
   <template>
     <link rel="stylesheet" href="playlist-songs.css">
     <service-now-playing id="nowPlaying"></service-now-playing>
-    <core-ajax id="ajax"
-               handleAs="json"
-               response="{{response}}"
-               withCredentials></core-ajax>
-    <template repeat="{{song in response.songs}}">
+    <template repeat="{{song in playlist.songs}}">
       <paper-item on-click="{{play}}" data-songid="{{song.id}}">{{song.name}}</paper-item>
     </template>
   </template>
