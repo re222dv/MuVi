@@ -15,10 +15,16 @@
         let subject = new Rx.Subject();
 
         if (!working[url]) {
-          working[url] = Rx.DOM.getJSON(url).asObservable();
-          working[url].subscribe((data) => {
-            localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
-          }, null, () => {delete working[url];});
+          working[url] = new Rx.Subject();
+          Rx.DOM.getJSON(url)
+            .subscribe((data) => {
+              localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
+              working[url].onNext(data);
+            }, working[url].onError, () => {
+              working[url].onCompleted();
+              working[url].dispose();
+              delete working[url];
+            });
         }
 
         working[url].subscribe(data => {
