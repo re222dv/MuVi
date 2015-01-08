@@ -22,7 +22,7 @@
     logOut: function (e) {
       Rx.DOM.get('/auth/logout').subscribe(() => {
         localStorage.clear();
-        location.reload();
+        window.location = '/login.html';
       });
       e.stopPropagation();
     },

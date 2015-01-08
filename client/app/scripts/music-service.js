@@ -20,7 +20,10 @@
             .subscribe((data) => {
               localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
               working[url].onNext(data);
-            }, () => {
+            }, (e) => {
+              if (e.status === 401) {
+                window.location = '/login.html';
+              }
               working[url].onError();
               delete working[url];
             }, () => {

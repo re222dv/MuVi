@@ -1,3 +1,4 @@
+let Boom = require('boom');
 import neo4j from './model/DAL/neo4j';
 import spotify from './model/DAL/spotify.js';
 
@@ -6,7 +7,11 @@ export var routes = [
     method: 'GET',
     path: '/api/playlists',
     handler: (request, reply) => {
-      neo4j.getUserPlaylists(request.session.userId).then(reply);
+      if (request.session.userId) {
+        neo4j.getUserPlaylists(request.session.userId).then(reply);
+      } else {
+        reply(Boom.unauthorized());
+      }
     },
   },
   {
