@@ -38,9 +38,6 @@
     songChange: function (_, nowPlaying) {
       console.log(nowPlaying);
       this.song = nowPlaying;
-      //this.song = nowPlaying.name;
-      //this.artist = nowPlaying.artist.name;
-      //this.$.youtube.setAttribute('videoid', nowPlaying.video.youtubeId);
       this.async(() => this.videoLoaded = true);
     },
     statusChange: function (_, playing) {
@@ -56,6 +53,11 @@
     videoState: function (_, state) {
       if (state.data === 0) { // Ended
         this.$.music.next();
+        this.async(() => {
+          if (this.song.video) {
+            this.$.music.setPlaying(true);
+          }
+        });
       } else if (state.data === 1) { // Playing
         this.$.music.setPlaying(true);
       } else if (state.data === 2) { // Paused
