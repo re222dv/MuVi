@@ -77,7 +77,7 @@ let neo4j = {
 
         console.log(`${match} ${create} ${createUnique}`);
 
-        if (!match && !create && !createUnique) {
+        if (!create && !createUnique) {
           return Promise.resolve([]);
         }
 

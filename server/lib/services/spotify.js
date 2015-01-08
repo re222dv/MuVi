@@ -45,6 +45,38 @@ let newEntities = (entities) =>
     return {entities: entities.entities, relations: entities.relations};
   });
 
+let newVideos = (entities) =>
+  // Get all existing SpotifyEntities with same Spotify id as any of the new
+  neo4j.query(`Match (video:YouTubeVideo)<--(entity)
+               Where video.youtubeId IN {ids}
+               Return video, entity`,
+    {ids: entities.entities
+      .filter(entity => entity.type === 'YouTubeVideo')
+      .map(entity => entity.youtubeId)}
+  )
+    //.then(existingEntities => existingEntities.map(existingEntity => existingEntity.spotifyId))
+    .then(existingEntities => {
+      let existingIds = existingEntities.map(entity => ({
+        entity: entity.entity.id,
+        video: entity.video.youtubeId,
+        videoId: entity.video.id,
+      }));
+
+      // Add existing ids to entities
+      entities.relations
+        .filter(relation => relation.end.type === 'YouTubeVideo')
+        .forEach(relation => {
+          let existingId = existingIds.filter(id => id.video === relation.end.youtubeId);
+
+          if (existingId.length) {
+            relation.start.id = existingId[0].entity;
+            relation.end.id = existingId[0].videoId;
+          }
+        });
+
+      return {entities: entities.entities, relations: entities.relations};
+    });
+
 /**
  * Updates the update time to current time
  * @param {SpotifyEntity} spotifyEntity
@@ -69,6 +101,7 @@ module.exports = Rx.Observer.create(user => {
             modifiedSince = existingUser.spotify.updated;
             console.log('User exists');
             if (Date.now() - (modifiedSince || 0) < ONE_HOUR) {
+              console.log(Date.now() - (modifiedSince || 0));
               return user.session.save();
             } else {
               console.log('Updating user details');
@@ -136,38 +169,39 @@ module.exports = Rx.Observer.create(user => {
                         })
                         .catch(console.error);
                     })
-                    .then(() =>
-                      neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
-                                   Where not (:YouTubeVideo)<--(song:Song)
-                                   Return song, artist`)
-                    )
-                    .then(rows => Promise.all(
-                      rows.map(row => getVideo(row.song, row.artist.mid))
-                    ))
-                    .then(videos => {
-                      let data = {
-                        entities: [],
-                        relations: [],
-                      };
-                      videos
-                        .filter(video => video !== undefined)
-                        .forEach(video => {
-                          data.entities.push(video.song);
-                          data.entities.push(video.video);
-                          data.entities.push(video.thumbnail);
-
-                          data.relations.push(relate(video.song, 'video', video.video));
-                          data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
-                        });
-
-                      return neo4j.create(data.entities, data.relations);
-                    })
                     .catch(console.error);
                 });
             })
             .doOnError(console.log)
             .subscribeOnCompleted(() => {
-              console.log('done');
+              neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
+                                   Where not (:YouTubeVideo)<--(song:Song)
+                                   Return song, artist`)
+                .then(rows => Promise.all(
+                  rows.map(row => getVideo(row.song, row.artist.mid))
+                ))
+                .then(videos => {
+                  let data = {
+                    entities: [],
+                    relations: [],
+                  };
+                  videos
+                    .filter(video => video !== undefined)
+                    .forEach(video => {
+                      console.log('video for', video.song.name);
+                      data.entities.push(video.song);
+                      data.entities.push(video.video);
+                      data.entities.push(video.thumbnail);
+
+                      data.relations.push(relate(video.song, 'video', video.video));
+                      data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
+                    });
+
+                  return newVideos(data)
+                    .then(data => neo4j.create(data.entities, data.relations));
+                })
+                .catch(console.error)
+                .then(() => console.log('done'));
             });
         })
         .catch(console.log);
