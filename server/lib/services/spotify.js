@@ -98,7 +98,6 @@ module.exports = Rx.Observer.create(user => {
               return getPlaylist(user.token, playlist.tracks, modifiedSince)
                 .doOnError(console.log)
                 .map(playlistData => {
-                  console.log('Here');
                   data.entities = data.entities.concat(playlistData.entities);
                   data.relations = data.relations
                     .concat(playlistData.relations)
@@ -106,7 +105,6 @@ module.exports = Rx.Observer.create(user => {
                       .filter(entity => entity.type === 'Song')
                       .map(relate(playlist.playlist, 'contains'))
                   );
-                  console.log(data.entities);
                   return newEntities(data)
                     .then(data => {
                       let newArtists = data.entities
@@ -140,8 +138,8 @@ module.exports = Rx.Observer.create(user => {
                     })
                     .then(() =>
                       neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
-                               Where not (:YouTubeVideo)<--(song:Song)
-                               Return song, artist`)
+                                   Where not (:YouTubeVideo)<--(song:Song)
+                                   Return song, artist`)
                     )
                     .then(rows => Promise.all(
                       rows.map(row => getVideo(row.song, row.artist.mid))

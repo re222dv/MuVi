@@ -2,7 +2,9 @@ let base64id = require('base64id');
 // NOTICE: Uses require to be able to mock
 //import {get, set, del} from '../model/DAL/redis';
 let redis = require('../model/DAL/redis');
-let get = redis.get, set = redis.set, del = redis.del;
+let get = redis.get, set = redis.set, del = redis.del, expire = redis.expire;
+
+const ONE_HOUR = 1000 * 60 * 60;
 
 function destroy() {
   this.isDestroyed = true;
@@ -10,11 +12,13 @@ function destroy() {
 }
 
 function save() {
-  return set(`session-${this.id}`, this.data);
+  let key = `session-${this.id}`;
+
+  return set(key, this.data).then(() => expire(key, ONE_HOUR));
 }
 
 let createSession = (sessionId, data) => (
-  {id: sessionId, data: data, save: save, destroy: destroy}
+  {id: sessionId, data, save, destroy}
 );
 
 let session = {
