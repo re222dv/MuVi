@@ -128,7 +128,14 @@ module.exports = function (grunt) {
           port: 9099,
           https: false,
           xforward: false
-        }
+        },
+        {
+          context: '/auth',
+          host: '127.0.0.1',
+          port: 9099,
+          https: false,
+          xforward: false
+        },
       ],
       livereload: {
         options: {

@@ -5,7 +5,8 @@ import request from '../../services/oauth_request.js';
  * @param {string} path
  * @returns {Rx.Observable<string>}
  */
-let spotifyPath = (token, path) => request(token, 'GET', `https://api.spotify.com/v1${path}`);
+let spotifyPath = (token, path, modifiedSince) =>
+  request(token, 'GET', `https://api.spotify.com/v1${path}`, modifiedSince);
 
 /**
  * A wrapper that creates a SpotifyEntity from a spotify object.
@@ -15,6 +16,7 @@ let createSpotifyEntity = (callback) => (entity) => callback({
   type: 'SpotifyEntity',
   spotifyId: entity.id,
   spotifyType: entity.type,
+  updated: Date.now(),
 }, entity);
 
 let createMusicEntities = (songs) => {
@@ -34,7 +36,7 @@ let createMusicEntities = (songs) => {
         durationMs: song.duration_ms,
         number: song.track_number,
       },  spotifyEntity];
-      let songRelations = [{start: songEntities[0], end: spotifyEntity}];
+      let songRelations = [{start: songEntities[0], label: 'is', end: spotifyEntity}];
 
       if (albums.indexOf(song.album.id) === -1) { // The album haven't been instantiated
         (createSpotifyEntity((spotifyEntity, album) => {
@@ -45,8 +47,8 @@ let createMusicEntities = (songs) => {
             albumType: album.album_type,
           }, spotifyEntity]);
           songRelations = songRelations.concat([
-            {start: songEntities[0], end: songEntities[2]}, // Song to Album
-            {start: songEntities[2], end: songEntities[3]}, // Album to SpotifyEntity
+            {start: songEntities[0], label: 'on', end: songEntities[2]}, // Song to Album
+            {start: songEntities[2], label: 'is', end: songEntities[3]}, // Album to SpotifyEntity
           ]);
           albums.push(song.album.id);
         }))(song.album);
@@ -57,7 +59,7 @@ let createMusicEntities = (songs) => {
           .filter(relation => relation.end.spotifyId === song.album.id)
           .map(relation => relation.start)[0];
 
-        songRelations.push({start: songEntities[0], end: album}); // Song to Album
+        songRelations.push({start: songEntities[0], label: 'on', end: album}); // Song to Album
       }
 
       song.artists.forEach(createSpotifyEntity((spotifyEntity, artist) => {
@@ -69,8 +71,8 @@ let createMusicEntities = (songs) => {
 
           songEntities = songEntities.concat(artistEntities);
           songRelations = songRelations.concat([
-            {start: songEntities[0], end: artistEntities[0]}, // Song to Artist
-            {start: artistEntities[0], end: spotifyEntity}
+            {start: songEntities[0], label: 'by', end: artistEntities[0]}, // Song to Artist
+            {start: artistEntities[0], label: 'is', end: spotifyEntity}
           ]);
           artists.push(artist.id);
         } else {
@@ -80,7 +82,7 @@ let createMusicEntities = (songs) => {
             .filter(relation => relation.end.spotifyId === artist.id)
             .map(relation => relation.start)[0];
 
-          songRelations.push({start: songEntities[0], end: oldArtist}); // Song to Artist
+          songRelations.push({start: songEntities[0], label: 'by', end: oldArtist}); // Song to Artist
         }
       }));
 
@@ -112,12 +114,13 @@ export function getUser(token) {
  * Get playlists for user
  * @param {OAuthToken} token
  * @param {string} userId Spotify id for the user
+ * @param {Date|number} [modifiedSince] Only return if the playlists have been updated since
  * @returns Rx.Observable<{{playlist: Playlist, spotifyEntity: SpotifyEntity}}>
  */
-export function getPlaylists(token, userId) {
-  return spotifyPath(token, `/users/${userId}/playlists`)
+export function getPlaylists(token, userId, modifiedSince) {
+  return spotifyPath(token, `/users/${userId}/playlists`, modifiedSince)
     .map(JSON.parse)
-    .flatMap(response => response.items)
+    .flatMap(response => response.items || [])
     .map(createSpotifyEntity((spotifyEntity, playlist) => ({
       playlist: {
         type: 'Playlist',
@@ -132,11 +135,12 @@ export function getPlaylists(token, userId) {
  * Get playlists for user
  * @param {OAuthToken} token
  * @param {string} url The url to the playlist tracks resource
+ * @param {Date|number} [modifiedSince] Only return if the playlist have been updated since
  * @returns Rx.Observable<Array.<{entities: Song|Album|Artist|SpotifyEntity, relations: Relation}>>
  */
-export function getPlaylist(token, url) {
-  return request(token, 'GET', url)
+export function getPlaylist(token, url, modifiedSince) {
+  return request(token, 'GET', url, modifiedSince)
     .map(JSON.parse)
-    .map(response => response.items.map(item => item.track))
+    .map(response => (response.items || []).map(item => item.track))
     .map(createMusicEntities);
 }

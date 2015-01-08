@@ -8,7 +8,7 @@ let Rx = require('rx');
  * @param {string} url
  * @returns {Rx.Observable<string>}
  */
-let oauthRequest = (token, method, url) => {
+let oauthRequest = (token, method, url, modifiedSince) => {
   let tokenPromise = Promise.resolve(token.access_token);
   //if (token.expired()) {
   //  console.log('refresh');
@@ -22,6 +22,14 @@ let oauthRequest = (token, method, url) => {
 
   let response = new Rx.Subject();
 
+  let headers = {};
+  if (modifiedSince) {
+    if (typeof modifiedSince === 'number') {
+      modifiedSince = new Date(modifiedSince);
+    }
+    headers['If-Modified-Since'] = modifiedSince.toUTCString();
+  }
+
   console.warn(url);
   tokenPromise
     .then(accessToken => request(url, {
@@ -29,11 +37,12 @@ let oauthRequest = (token, method, url) => {
       auth: {
         bearer: accessToken
       },
+      headers: headers,
     }, (err, result, body) => {
       if (err) {
         response.onError(err);
       } else {
-        response.onNext(body);
+        response.onNext(result.statusCode === 304 ? null : body);
       }
       response.onCompleted();
       response.dispose();

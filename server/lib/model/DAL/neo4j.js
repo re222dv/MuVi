@@ -54,7 +54,8 @@ let neo4j = {
           placeholders[`n${index}`] = entity;
         });
         relations.forEach(relation => {
-          createUnique += `(n${relation.start.index})-[:Relates]->(n${relation.end.index}), `;
+          createUnique += `(n${relation.start.index})-[:${relation.label || 'Relates'}]` +
+                          `->(n${relation.end.index}), `;
         });
         entities.forEach(entity => {
           delete entity.old;
@@ -76,9 +77,37 @@ let neo4j = {
 
         console.log(`${match} ${create} ${createUnique}`);
 
+        if (!match && !create && !createUnique) {
+          return Promise.resolve([]);
+        }
+
         return new Promise(resolve =>
           db.query(`${match} ${create} ${createUnique}`, placeholders, promise(resolve)));
       }),
+
+  save: (entities) =>
+    Promise.all(entities.map(validate))
+      .then(() => {
+        let query = 'Match ';
+        let placeholders = {};
+        entities.forEach((entity, index) => {
+          query += `(n${index}:${entity.type} {id: {n${index}}.id}), `;
+        });
+        query = query.substr(0, query.length - 2);
+
+        query += ' Set ';
+        entities.forEach((entity, index) => {
+          query += `n${index} = {n${index}}, `;
+          placeholders[`n${index}`] = entity;
+        });
+        query = query.substr(0, query.length - 2);
+
+        console.log(query);
+
+        return new Promise(resolve =>
+          db.query(query, placeholders, promise(resolve)));
+      }),
+
 
   getEntities: (type, key, value) => {
     let where = '';

@@ -43,6 +43,7 @@ let schemas = {
   SpotifyEntity: base.keys({
     spotifyId: Joi.string(),
     spotifyType: Joi.string(),
+    updated: Joi.number().integer(),
   }),
   YouTubeVideo: base.keys({
     youtubeId: Joi.string(),

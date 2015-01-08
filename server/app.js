@@ -31,7 +31,7 @@ if (!module.parent) {
     {
       register: oauth,
       options: {
-        host: 'http://localhost:9099',
+        host: 'http://localhost:9000',
         providers: [spotify],
       }
     }

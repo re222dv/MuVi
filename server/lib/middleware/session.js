@@ -39,7 +39,9 @@ let register = (server, options, next) => {
       reply.unstate('sessionId');
       reply.continue();
     } else {
-      request.response.header('Access-Control-Allow-Credentials', 'true');
+      if (request.response.header) {
+        request.response.header('Access-Control-Allow-Credentials', 'true');
+      }
       request.sessionObject.save()
         .then(() => reply.continue());
     }

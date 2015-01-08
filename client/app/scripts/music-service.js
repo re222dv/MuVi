@@ -1,7 +1,7 @@
 (function (Rx) {
   'use strict';
 
-  const TEN_HOURS = 1000 * 60 * 60;
+  const ONE_HOUR = 1000 * 60 * 60;
 
   let working = {};
 
@@ -11,7 +11,7 @@
     _cachedRequest: function (url) {
       let cache = JSON.parse(localStorage.getItem(url));
 
-      if (!cache || Date.now() - cache.timestamp > TEN_HOURS) {
+      if (!cache || Date.now() - cache.timestamp > ONE_HOUR) {
         let subject = new Rx.Subject();
 
         if (!working[url]) {
