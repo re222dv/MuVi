@@ -4,7 +4,10 @@
 <link rel="import" href="../../bower_components/core-header-panel/core-header-panel.html">
 <link rel="import" href="../../bower_components/core-icon-button/core-icon-button.html">
 <link rel="import" href="../../bower_components/core-icons/av-icons.html">
+<link rel="import" href="../../bower_components/core-menu/core-menu.html">
 <link rel="import" href="../../bower_components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../elements.html">
 
@@ -16,10 +19,6 @@
         <core-toolbar>
           <div>Playlists</div>
         </core-toolbar>
-        <!--<core-ajax url="http://localhost:9099/api/playlists"-->
-                   <!--handleAs="json"-->
-                   <!--response="{{response}}"-->
-                   <!--auto withCredentials></core-ajax>-->
         <template repeat="{{playlist in playlists}}">
           <paper-item on-click="{{playlistClick}}" data-id="{{playlist.id}}">{{playlist.name}}</paper-item>
         </template>
@@ -37,6 +36,11 @@
             <paper-icon-button icon="av:queue-music" on-click="{{toggleQueue}}"
                                title="Now Playing queue"></paper-icon-button>
           </template>
+          <dropdown-trigger icon="face-unlock" title="User Menu">
+            <paper-dropdown class="dropdown" id="dropdown" halign="right" layered>
+              <paper-item on-click="{{logOut}}" class="dropdown-button">Log out</paper-item>
+            </paper-dropdown>
+          </dropdown-trigger>
         </core-toolbar>
         <playlist-songs playlistId="{{playlistId}}" hidden?="{{queue}}"></playlist-songs>
         <now-playing-queue hidden?="{{!queue}}"></now-playing-queue>

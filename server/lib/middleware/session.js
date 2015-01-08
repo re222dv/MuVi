@@ -36,7 +36,8 @@ let register = (server, options, next) => {
 
   server.ext('onPreResponse', (request, reply) => {
     if (request.sessionObject.isDestroyed) {
-      reply.unstate('sessionId');
+      //reply.unstate('sessionId');
+      setCookie(reply, null);
       reply.continue();
     } else {
       if (request.response.header) {
@@ -46,6 +47,16 @@ let register = (server, options, next) => {
         .then(() => reply.continue());
     }
   });
+
+  server.route([{
+    method: 'GET',
+    path: '/auth/logout',
+    handler: (request, reply) => {
+      request.sessionObject.destroy();
+
+      reply();
+    },
+  }]);
 
   return next();
 };

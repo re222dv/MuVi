@@ -60,13 +60,12 @@ let register = (server, options, next) => {
 
               token.expiresAt = Date.now() + token.expires_in * 1000;
               request.session.oauth[provider.name].token = token;
-              //console.log(token);
               authedTokens.onNext({
                 provider: provider.name,
                 token: token,
                 session: request.sessionObject
               });
-              reply('auth');
+              reply.redirect('/');
             }
           );
         },

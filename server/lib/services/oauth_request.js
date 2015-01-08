@@ -6,6 +6,7 @@ let Rx = require('rx');
  * @param {OAuthToken} token
  * @param {string} method
  * @param {string} url
+ * @param {Date|number} [modifiedSince] Only return if the resource have been updated since
  * @returns {Rx.Observable<string>}
  */
 let oauthRequest = (token, method, url, modifiedSince) => {

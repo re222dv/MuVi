@@ -1,4 +1,4 @@
-(function (music) {
+(function (music, Rx) {
   'use strict';
 
   Polymer('muvi-app', {
@@ -16,10 +16,20 @@
     toggleQueue: function () {
       this.queue = !this.queue;
     },
+    toggleUserMenu: function () {
+      this.$.dropdown.toggle();
+    },
+    logOut: function (e) {
+      Rx.DOM.get('/auth/logout').subscribe(() => {
+        localStorage.clear();
+        location.reload();
+      });
+      e.stopPropagation();
+    },
     domReady: function () {
       music.getPlaylists()
         .subscribe(playlists => this.playlists = playlists);
     }
   });
-})(MusicService);
+})(MusicService, Rx);
 

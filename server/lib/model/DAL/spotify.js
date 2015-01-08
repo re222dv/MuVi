@@ -3,6 +3,7 @@ import request from '../../services/oauth_request.js';
 /**
  * @param {OAuthToken} token
  * @param {string} path
+ * @param {Date|number} [modifiedSince] Only return if the resource have been updated since
  * @returns {Rx.Observable<string>}
  */
 let spotifyPath = (token, path, modifiedSince) =>

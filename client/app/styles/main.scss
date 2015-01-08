@@ -8,4 +8,9 @@ html /deep/ {
   paper-ripple {
     color: $primary-color-light;
   }
+
+  .dropdown-button {
+    @include font-button;
+    color: rgba(0,0,0,0.87);
+  }
 }
