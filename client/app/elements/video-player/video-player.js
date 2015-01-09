@@ -12,6 +12,29 @@
     fullscreen: false,
     toggleFullscreen: stopProp(function () {
       this.fullscreen = !this.fullscreen;
+
+      // Code from https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Using_full_screen_mode
+      if (this.fullscreen) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+          document.documentElement.msRequestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+          document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
     }),
     toggleRepeat: stopProp(function () {
       this.$.music.toggleRepeat();
@@ -93,7 +116,7 @@
         .subscribe(() => this.toggleFullscreen());
       this.playbackListener = Rx.DOM.fromEvent(this.$.player, 'click')
         .subscribe(() => {
-          if (this.$.controls.getBoundingClientRect().width <= 600) {
+          if (document.body.getBoundingClientRect().width <= 600) {
             if (this.fullscreen) {
               this.showControls = true;
               window.setTimeout(() => this.showControls = false, 3000);
