@@ -1,10 +1,10 @@
 let autoCurry = require('auto-curry');
 let Rx = require('rx');
-import entitiesFromSpotify from '../model/DAL/spotify.js';
 import {getArtist} from '../model/DAL/freebase.js';
 import {getUser, getPlaylists, getPlaylist} from '../model/DAL/spotify.js';
 import {getVideo} from '../model/DAL/youtube.js';
 import neo4j from '../model/DAL/neo4j.js';
+let redis = require('../model/DAL/redis');
 
 //const ONE_HOUR = 1000 * 60 * 60;
 const ONE_HOUR = 1000 * 60;
@@ -86,7 +86,8 @@ let touch = (spotifyEntity) => {
   neo4j.save([spotifyEntity]);
 };
 
-module.exports = Rx.Observer.create(user => {
+module.exports = (user) =>
+  new Promise((resolve, reject) => {
   getUser(user.token)
     .subscribe(spotifyProfile => {
       neo4j.query(`Match (spotify:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User) Return user, spotify`,
@@ -102,17 +103,18 @@ module.exports = Rx.Observer.create(user => {
             console.log('User exists');
             if (Date.now() - (modifiedSince || 0) < ONE_HOUR) {
               console.log(Date.now() - (modifiedSince || 0));
-              return user.session.save();
+              return user.session.save().then(resolve);
             } else {
               console.log('Updating user details');
               touch(existingUser.spotify);
             }
           }
 
-          return getPlaylists(user.token, spotifyProfile.spotifyEntity.spotifyId, modifiedSince)
-            .doOnNext(console.log)
+          getPlaylists(user.token, spotifyProfile.spotifyEntity.spotifyId, modifiedSince)
+            //.doOnNext(console.log)
+            .doOnCompleted(() => console.log("getPlaylists"))
             .flatMap(playlist => {
-              console.log(playlist);
+              //console.log(playlist);
 
               let data = {
                 entities: [
@@ -130,7 +132,8 @@ module.exports = Rx.Observer.create(user => {
 
               return getPlaylist(user.token, playlist.tracks, modifiedSince)
                 .doOnError(console.log)
-                .map(playlistData => {
+                .doOnCompleted(() => console.log("getPlaylist"))
+                .flatMap(playlistData => {
                   data.entities = data.entities.concat(playlistData.entities);
                   data.relations = data.relations
                     .concat(playlistData.relations)
@@ -173,7 +176,9 @@ module.exports = Rx.Observer.create(user => {
                 });
             })
             .doOnError(console.log)
+            .doOnCompleted(() => console.log("flatMap"))
             .subscribeOnCompleted(() => {
+              console.log('completyd');
               neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
                                    Where not (:YouTubeVideo)<--(song:Song)
                                    Return song, artist`)
@@ -197,13 +202,28 @@ module.exports = Rx.Observer.create(user => {
                       data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
                     });
 
-                  return newVideos(data)
-                    .then(data => neo4j.create(data.entities, data.relations));
+                  return newVideos(data);
                 })
+                .then(data => neo4j.create(data.entities, data.relations))
                 .catch(console.error)
-                .then(() => console.log('done'));
+                .then(() => console.log('done'))
+                .then(() => console.log('query'))
+                .then(() => neo4j.query(
+                  'Match (:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User) Return user.id',
+                  {spotifyId: spotifyProfile.spotifyEntity.spotifyId}
+                ))
+                .then((result) => {
+                  if (!result[0]) {
+                    reject()
+                  };
+                  user.session.data.userId = result[0]['user.id'];
+                  return user.session.save();
+                })
+                .then(() => console.log('resolve'))
+                .then(resolve)
+                .catch(console.err);
             });
         })
         .catch(console.log);
     });
-});
+  });

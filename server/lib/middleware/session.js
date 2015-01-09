@@ -22,6 +22,7 @@ let register = (server, options, next) => {
       Session.restore(sessionId)
         .then(session => {
           if (!session.data) {
+            console.log('new session');
             session = Session.create();
             setCookie(reply, session.id);
           }

@@ -31,7 +31,9 @@ let neo4j = {
     new Promise(resolve =>
       db.query(query, parameters, promise(resolve)))
       .then(result => result.map(row => {
-        Object.keys(row).forEach(key => row[key] = row[key]._data.data);
+        try {
+          Object.keys(row).forEach(key => row[key] = row[key]._data.data);
+        } catch(_) {}
         return row;
       })),
 

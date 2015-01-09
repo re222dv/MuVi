@@ -33,6 +33,11 @@ if (!module.parent) {
       options: {
         host: 'http://localhost:9000',
         providers: [spotify],
+        callback: function(options) {
+          if (options.provider === 'spotify') {
+            return spotifyService(options);
+          }
+        }
       }
     }
   ], function (err) {
@@ -44,10 +49,5 @@ if (!module.parent) {
     });
   });
 }
-
-oauth.authedTokens
-  .do(function () {console.warn('app');})
-  .filter(function (token) {return token.provider === 'spotify';})
-  .subscribe(spotifyService);
 
 module.exports = server;

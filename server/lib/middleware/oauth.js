@@ -7,6 +7,7 @@ var authedTokens = new Rx.Subject();
 
 let register = (server, options, next) => {
   options.providers = options.providers || [];
+  options.callback = options.callback || Promise.resolve();
 
   options.providers.forEach(provider => {
     let callbackUrl = `${options.host}/auth/${provider.name}/callback`;
@@ -60,12 +61,11 @@ let register = (server, options, next) => {
 
               token.expiresAt = Date.now() + token.expires_in * 1000;
               request.session.oauth[provider.name].token = token;
-              authedTokens.onNext({
+              options.callback({
                 provider: provider.name,
                 token: token,
                 session: request.sessionObject
-              });
-              reply.redirect('/');
+              }).then(() => reply.redirect('/'));
             }
           );
         },
