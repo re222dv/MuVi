@@ -21,21 +21,19 @@
         <google-youtube
           videoid="{{song.video.youtubeId}}"
           id="youtube"
-          controls="0"
-          rel="0"
-          showinfo="0"
           fluid
+          chromeless
+          modestbranding="1"
           on-google-youtube-state-change="{{videoState}}"
           state="{{state}}"
           currenttime="{{current}}"
           duration="{{duration}}"
           currenttimeformatted="{{currenttimeFormatted}}"
-          durationformatted="{{durationFormatted}}"
-          iv_load_policy="3">
+          durationformatted="{{durationFormatted}}">
         </google-youtube>
       </div>
       <div id="player" show?="{{showControls || !playing}}">
-        <div class="controls" layout horizontal center on-click="{{stopProp}}">
+        <div id="controls" layout horizontal center on-click="{{stopProp}}">
           <paper-icon-button icon="av:skip-previous" on-click="{{previous}}"></paper-icon-button>
           <paper-icon-button icon="av:play-arrow" on-click="{{play}}" hidden?="{{playing}}"></paper-icon-button>
           <paper-icon-button icon="av:pause" on-click="{{pause}}" hidden?="{{!playing}}"></paper-icon-button>
@@ -44,11 +42,13 @@
             <h5>{{song.name}}</h5>
             <h6>{{song.artist.name}}</h6>
           </div>
-          <div flex layout horizontal center id="time">
+          <div flex>
             <template if="{{fullscreen}}">
-              <span>{{currenttimeFormatted}}</span>
-              <paper-slider value="{{current}}" max="{{duration}}" on-change="{{seek}}" flex></paper-slider>
-              <span>{{durationFormatted}}</span>
+              <div id="time" layout horizontal center>
+                <span>{{currenttimeFormatted}}</span>
+                <paper-slider value="{{current}}" max="{{duration}}" on-change="{{seek}}" flex></paper-slider>
+                <span>{{durationFormatted}}</span>
+              </div>
             </template>
           </div>
           <paper-icon-button icon="av:repeat" on-click="{{toggleRepeat}}" selected?="{{repeat}}"></paper-icon-button>

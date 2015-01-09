@@ -1,5 +1,7 @@
 @import "../../styles/Material/definitions";
 
+$transition-duration: 0.3s;
+
 :host {
   display: block;
 }
@@ -12,7 +14,6 @@
   height: 30vw / (16/9);
   width: 30vw;
 
-  $transition-duration: 0.3s;
   transition: right $transition-duration,
               bottom $transition-duration,
               width $transition-duration,
@@ -28,7 +29,7 @@
       cursor: none;
     }
 
-    .controls {
+    #controls {
       bottom: -64px;
       padding: 8px 16px;
       height: 64px;
@@ -44,53 +45,57 @@
     height: 100%;
     background-color: black;
   }
+}
 
-  #player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+#player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 
-    &[show] .controls {
-      bottom: 0;
+  &[show] #controls {
+    bottom: 0;
+  }
+}
+
+#controls {
+  position: absolute;
+  bottom: 0;
+
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+
+  color: white;
+  background-color: transparentize($accent-color, 0.1);
+
+  transition: bottom $transition-duration,
+  padding $transition-duration,
+  height $transition-duration;
+
+  .info {
+    margin-left: 16px;
+    max-width: 30%;
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    h5, h6 {
+      margin: 0;
     }
   }
 
-  .controls {
-    position: absolute;
-    bottom: 0;
+  paper-icon-button {
+    min-width: 24px;
+  }
 
-    box-sizing: border-box;
-    width: 100%;
-    height: 40px;
+  [selected] {
+    color: $primary-color;
+  }
 
-    color: white;
-    background-color: transparentize($accent-color, 0.1);
-
-    transition: bottom $transition-duration,
-                padding $transition-duration,
-                height $transition-duration;
-
-    .info {
-      margin-left: 16px;
-      max-width: 30%;
-      overflow: hidden;
-
-      white-space: nowrap;
-
-      h5, h6 {
-        margin: 0;
-      }
-    }
-
-    [selected] {
-      color: $primary-color;
-    }
-
-    .fullscreen {
-      transform: rotate(45deg);
-    }
+  .fullscreen {
+    transform: rotate(45deg);
   }
 }
 
@@ -101,5 +106,25 @@
 paper-slider::shadow {
   #sliderBar::shadow #activeProgress, #sliderKnobInner {
     background-color: $primary-color;
+  }
+}
+
+@media (max-width: 900px) {
+  .video:not([fullscreen]) {
+    [icon="av:repeat"],[icon="av:shuffle"] {
+      display: none;
+    }
+  }
+
+  #time {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .video:not([fullscreen]) {
+    #controls {
+      display: none;
+    }
   }
 }

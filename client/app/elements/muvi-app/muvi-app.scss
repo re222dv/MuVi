@@ -17,3 +17,7 @@ core-header-panel {
 paper-icon-button[selected] {
   color: $accent-color;
 }
+
+[drawer] {
+  background-color: $blue-grey-700;
+}

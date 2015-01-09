@@ -7,7 +7,13 @@
     <link rel="stylesheet" href="playlist-songs.css">
     <service-now-playing id="nowPlaying"></service-now-playing>
     <template repeat="{{song in playlist.songs}}">
-      <paper-item on-click="{{play}}" data-songid="{{song.id}}">{{song.name}}</paper-item>
+      <paper-item on-click="{{play}}" data-songid="{{song.id}}">
+        <span>{{song.name}}</span>
+        <div>
+          <span>{{song.artist.name}}</span>
+          <span>{{song.album.name}}</span>
+        </div>
+      </paper-item>
     </template>
   </template>
   <script src="playlist-songs.js"></script>

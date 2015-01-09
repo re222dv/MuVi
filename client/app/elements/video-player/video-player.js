@@ -93,12 +93,15 @@
         .subscribe(() => this.toggleFullscreen());
       this.playbackListener = Rx.DOM.fromEvent(this.$.player, 'click')
         .subscribe(() => {
+          if (getComputedStyle(this.$.controls).display === 'none' && !this.fullscreen) {
+            return this.toggleFullscreen();
+          }
           if (this.playing) {
             this.pause();
           } else {
             this.play();
           }
-        })
+        });
     },
     detached: function () {
       this.handleControls.dispose();
