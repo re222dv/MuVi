@@ -264,12 +264,12 @@ module.exports = function (grunt) {
           cwd: '<%= yeoman.app %>',
           dest: '<%= yeoman.dist %>',
           src: [
-            '*.{ico,txt}',
+            '*.{ico,txt,png,appcache,xml}',
             '.htaccess',
             '*.html',
             'elements/**',
             '!elements/**/*.scss',
-            'images/{,*/}*.{webp,gif}',
+            'images/{,*/}*.{webp,gif,svg}',
             'bower_components/**'
           ]
         }]
