@@ -17,8 +17,13 @@ export var routes = [
   {
     method: 'GET',
     path: '/api/playlists/{id}',
-    handler: (request, reply) =>
-      neo4j.getPlaylist(request.params.id).then(reply),
+    handler: (request, reply) => {
+      if (request.session.userId) {
+        neo4j.getPlaylist(request.session.userId, request.params.id).then(reply);
+      } else {
+        reply(Boom.unauthorized());
+      }
+    },
   },
   {
     method: 'GET',
