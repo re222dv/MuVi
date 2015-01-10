@@ -1,13 +1,51 @@
+let Rx = require('rx');
 import request from '../../services/oauth_request.js';
+
+/**
+ * Handles Spotify paging automatically
+ *
+ * @param {OAuthToken} token
+ * @param {string} url
+ * @param {Date|number} [modifiedSince] Only return if the resource have been updated since
+ * @returns {Rx.Observable<object>}
+ */
+let spotifyRequest = (token, url, modifiedSince) => {
+  let response = new Rx.Subject();
+
+  let nextPage;
+  let error = (e) => {
+    response.onError(e);
+    response.onCompleted();
+    response.dispose();
+  };
+  nextPage = data => {
+    response.onNext(data);
+
+    if (data.next) {
+      request(token, 'GET', data.next)
+        .map(JSON.parse)
+        .subscribe(nextPage, error);
+    } else {
+      response.onCompleted();
+      response.dispose();
+    }
+  };
+
+  request(token, 'GET', url, modifiedSince)
+    .map(JSON.parse)
+    .subscribe(nextPage, error);
+
+  return response.asObservable();
+};
 
 /**
  * @param {OAuthToken} token
  * @param {string} path
  * @param {Date|number} [modifiedSince] Only return if the resource have been updated since
- * @returns {Rx.Observable<string>}
+ * @returns {Rx.Observable<object>}
  */
 let spotifyPath = (token, path, modifiedSince) =>
-  request(token, 'GET', `https://api.spotify.com/v1${path}`, modifiedSince);
+  spotifyRequest(token, `https://api.spotify.com/v1${path}`, modifiedSince);
 
 /**
  * A wrapper that creates a SpotifyEntity from a spotify object.
@@ -101,7 +139,6 @@ let createMusicEntities = (songs) => {
  */
 export function getUser(token) {
   return spotifyPath(token, '/me')
-    .map(JSON.parse)
     .map(createSpotifyEntity((spotifyEntity, user) => ({
       user: {
         type: 'User',
@@ -120,7 +157,6 @@ export function getUser(token) {
  */
 export function getPlaylists(token, userId, modifiedSince) {
   return spotifyPath(token, `/users/${userId}/playlists`, modifiedSince)
-    .map(JSON.parse)
     .flatMap(response => response.items || [])
     .map(createSpotifyEntity((spotifyEntity, playlist) => ({
       playlist: {
@@ -140,8 +176,7 @@ export function getPlaylists(token, userId, modifiedSince) {
  * @returns Rx.Observable<Array.<{entities: Song|Album|Artist|SpotifyEntity, relations: Relation}>>
  */
 export function getPlaylist(token, url, modifiedSince) {
-  return request(token, 'GET', url, modifiedSince)
-    .map(JSON.parse)
+  return spotifyRequest(token, url, modifiedSince)
     .map(response => (response.items || []).map(item => item.track))
     .map(createMusicEntities);
 }

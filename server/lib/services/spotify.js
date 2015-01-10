@@ -88,28 +88,25 @@ let touch = (spotifyEntity) => {
 
 let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
   getPlaylists(token, spotifyProfile.spotifyEntity.spotifyId, modifiedSince)
-    //.doOnNext(console.log)
     .doOnCompleted(() => console.log('getPlaylists'))
     .flatMap(playlist => {
-      //console.log(playlist);
-
-      let data = {
-        entities: [
-          spotifyProfile.user,
-          spotifyProfile.spotifyEntity,
-          playlist.playlist,
-          playlist.spotifyEntity
-        ],
-        relations: [
-          relate(spotifyProfile.user, 'owns', playlist.playlist),
-          relate(playlist.playlist, 'is', playlist.spotifyEntity),
-        ],
-      };
-
       return getPlaylist(token, playlist.tracks, modifiedSince)
         .doOnError(console.log)
         .doOnCompleted(() => console.log('getPlaylist'))
         .flatMap(playlistData => {
+          let data = {
+            entities: [
+              spotifyProfile.user,
+              spotifyProfile.spotifyEntity,
+              playlist.playlist,
+              playlist.spotifyEntity
+            ],
+            relations: [
+              relate(spotifyProfile.user, 'owns', playlist.playlist),
+              relate(playlist.playlist, 'is', playlist.spotifyEntity),
+            ],
+          };
+
           data.entities = data.entities.concat(playlistData.entities);
           data.relations = data.relations
             .concat(playlistData.relations)
@@ -145,6 +142,10 @@ let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
                   });
 
                   return neo4j.create(data.entities, data.relations);
+                })
+                .catch(e => {
+                  console.error('Freebase Error', e);
+                  throw e;
                 });
             });
         });
@@ -155,39 +156,56 @@ let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
     )
     .doOnCompleted(() => console.log('flatMap'))
     .subscribeOnCompleted(() => {
-      console.log('completyd');
+      console.log('completed');
       neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
                    Where not (:YouTubeVideo)<--(song:Song)
                    Return song, artist`)
-        .then(rows => Promise.all(
-          rows.map(row => getVideo(row.song, row.artist.mid))
-        ))
-        .then(videos => {
-          let data = {
-            entities: [],
-            relations: [],
+        .then(rows => {
+          let subject = new Rx.Subject();
+
+          subject
+            .flatMap(chunk => Promise.all(chunk.map(row => getVideo(row.song, row.artist.mid))))
+            .flatMap(videos => {
+              let data = {
+                entities: [],
+                relations: [],
+              };
+              videos
+                .filter(video => video !== undefined)
+                .forEach(video => {
+                  console.log('video for', video.song.name);
+                  data.entities.push(video.song);
+                  data.entities.push(video.video);
+                  data.entities.push(video.thumbnail);
+
+                  data.relations.push(relate(video.song, 'video', video.video));
+                  data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
+                });
+
+              return newVideos(data);
+            })
+            .flatMap(data => neo4j.create(data.entities, data.relations))
+            .doOnError((e) => console.log('Video Error', e))
+            .doOnCompleted(() => console.log('done'))
+            .subscribeOnCompleted(() =>
+              redis.del(`updating-${userId}`)
+                .then(() => redis.pub(`updated-${userId}`, true))
+                .catch(() =>
+                  redis.del(`updating-${userId}`)
+                    .then(() => redis.pub(`updated-${userId}`, false))));
+
+          let pushChunk;
+          pushChunk = () => {
+            if (rows.length) {
+              subject.onNext(rows.splice(0, 50));
+              setTimeout(pushChunk, 50);
+            } else {
+              subject.onCompleted();
+              subject.dispose();
+            }
           };
-          videos
-            .filter(video => video !== undefined)
-            .forEach(video => {
-              console.log('video for', video.song.name);
-              data.entities.push(video.song);
-              data.entities.push(video.video);
-              data.entities.push(video.thumbnail);
-
-              data.relations.push(relate(video.song, 'video', video.video));
-              data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
-            });
-
-          return newVideos(data);
-        })
-        .then(data => neo4j.create(data.entities, data.relations))
-        .then(() => console.log('done'))
-        .then(() => redis.del(`updating-${userId}`))
-        .then(() => redis.pub(`updated-${userId}`, true))
-        .catch(() =>
-          redis.del(`updating-${userId}`)
-            .then(() => redis.pub(`updated-${userId}`, false)));
+          pushChunk();
+        });
     });
 
 module.exports = (user) =>
