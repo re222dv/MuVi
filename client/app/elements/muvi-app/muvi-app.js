@@ -2,6 +2,7 @@
   'use strict';
 
   Polymer('muvi-app', {
+    displaySpinner: false,
     playlistName: 'MuVi',
     queue: false,
     playlistClick: function (event) {
@@ -27,8 +28,17 @@
       });
     },
     domReady: function () {
+      let loaded = false;
+      window.setTimeout(() => {
+        if (!loaded) {
+          this.displaySpinner = true;
+        }
+      }, 100);
       music.getPlaylists()
-        .subscribe(playlists => this.playlists = playlists);
+        .subscribe(playlists => this.playlists = playlists, null, () => {
+          loaded = true;
+          this.displaySpinner = false;
+        });
     }
   });
 })(MusicService, Rx);
