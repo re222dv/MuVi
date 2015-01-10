@@ -14,4 +14,5 @@ module.exports = {
   site: 'https://accounts.spotify.com',
   authorizationPath: '/authorize',
   tokenPath: '/api/token',
+  scope: 'playlist-read-private',
 };
