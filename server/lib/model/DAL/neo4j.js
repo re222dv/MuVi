@@ -139,6 +139,10 @@ let neo4j = {
                        head(collect(ar)) as ar,
                        head(collect(v)) as v`, {userId, playlistId}, promise(resolve)))
       .then(result => {
+        if (!result.length) {
+          return null;
+        }
+
         let playlist = result[0].p._data.data;
         playlist.songs = [];
         result.forEach(row => {
