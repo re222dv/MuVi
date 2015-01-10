@@ -20,7 +20,9 @@
           <div>Playlists</div>
         </core-toolbar>
         <template repeat="{{playlist in playlists}}">
-          <paper-item on-click="{{playlistClick}}" data-id="{{playlist.id}}">{{playlist.name}}</paper-item>
+          <paper-item on-click="{{playlistClick}}" data-id="{{playlist.id}}">
+            {{playlist.name}}
+          </paper-item>
         </template>
       </core-header-panel>
       <core-header-panel main>
@@ -37,7 +39,7 @@
                                title="Now Playing queue"></paper-icon-button>
           </template>
           <dropdown-trigger icon="face-unlock" title="User Menu">
-            <paper-dropdown class="dropdown" id="dropdown" halign="right" layered>
+            <paper-dropdown id="dropdown" halign="right" layered closeSelector="paper-item">
               <paper-item on-click="{{logOut}}" class="dropdown-button">Log out</paper-item>
             </paper-dropdown>
           </dropdown-trigger>

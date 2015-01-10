@@ -1,0 +1,19 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="login-modal" attributes="">
+  <template>
+    <link rel="stylesheet" href="login-modal.css">
+    <template if="{{backdrop}}">
+      <div id="backdrop">
+        <template if="{{dialog}}">
+          <div id="dialog">
+            <img src="/images/muvi-logo.svg" alt="MuVi" />
+            <p>You need to sign in to use MuVi</p>
+            <a href="/auth/spotify">Sign in with Spotify</a>
+          </div>
+        </template>
+      </div>
+    </template>
+  </template>
+  <script src="login-modal.js"></script>
+</polymer-element>

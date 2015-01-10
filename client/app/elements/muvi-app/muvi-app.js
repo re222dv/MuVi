@@ -19,12 +19,12 @@
     toggleUserMenu: function () {
       this.$.dropdown.toggle();
     },
-    logOut: function (e) {
+    logOut: function () {
       Rx.DOM.get('/auth/logout').subscribe(() => {
         localStorage.clear();
-        window.location = '/login.html';
+        this.playlists = [];
+        window.unauthorized();
       });
-      e.stopPropagation();
     },
     domReady: function () {
       music.getPlaylists()

@@ -4,6 +4,7 @@ styles/main.css
 scripts/app.js
 bower_components/webcomponentsjs/webcomponents.js
 elements/elements.vulcanized.html
+images/muvi-logo.svg
 
 NETWORK:
 *
