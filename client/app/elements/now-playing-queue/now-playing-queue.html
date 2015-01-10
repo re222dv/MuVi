@@ -15,11 +15,10 @@
         <core-icon icon="av:pause-circle-fill" title="Paused"
                    hidden?="{{nowPlaying.id != song.id || playing}}"></core-icon>
         <span>{{song.name}}</span>
-        <div>
+        <div layout horizontal center>
           <span>{{song.artist.name}}</span>
           <span>{{song.album.name}}</span>
         </div>
-      </paper-item>
       </paper-item>
     </template>
   </template>

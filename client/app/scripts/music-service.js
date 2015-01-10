@@ -1,7 +1,7 @@
 (function (Rx) {
   'use strict';
 
-  const ONE_HOUR = 1000 * 60 * 60;
+  const TEN_MINUTES = 1000 * 60 * 10;
 
   let working = {};
 
@@ -9,10 +9,10 @@
     getPlaylist: (playlistId) => window.MusicService._cachedRequest(`/api/playlists/${playlistId}`),
     getPlaylists: () => window.MusicService._cachedRequest('/api/playlists'),
     _cachedRequest: function (url) {
+      let subject = new Rx.ReplaySubject(1); // Buffer at most one response
       let cache = JSON.parse(localStorage.getItem(url));
 
-      if (!cache || Date.now() - cache.timestamp > ONE_HOUR) {
-        let subject = new Rx.Subject();
+      if (!cache || Date.now() - cache.timestamp > TEN_MINUTES) {
 
         if (!working[url]) {
           working[url] = new Rx.Subject();
@@ -24,7 +24,7 @@
               if (e.status === 401) {
                 window.location = '/login.html';
               }
-              working[url].onError();
+              working[url].onError(e);
               delete working[url];
             }, () => {
               working[url].onCompleted();
@@ -35,17 +35,21 @@
 
         working[url].subscribe(data => {
           subject.onNext(data);
-        }, () => {
-          subject.onNext(cache.data);
+        }, (e) => {
+          if (!cache) {
+            subject.onError(e);
+          }
         }, () => {
           subject.onCompleted();
           subject.dispose();
         });
-
-        return subject.asObservable();
       }
 
-      return Rx.Observable.return(cache.data);
+      if (cache) {
+        subject.onNext(cache.data);
+      }
+
+      return subject.asObservable();
     }
   };
 })(Rx);
