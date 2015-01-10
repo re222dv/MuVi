@@ -5,6 +5,38 @@
 
   let working = {};
 
+  let request = (url, wait) => {
+    let requestAgain = false;
+
+    Rx.DOM.get(wait ? `${url}?wait` : url)
+      .subscribe((xhr) => {
+          let data = JSON.parse(xhr.responseText);
+          localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
+          working[url].onNext(data);
+
+          console.log('header', xhr.getResponseHeader('x-updating'));
+
+          if (xhr.getResponseHeader('x-updating')) {
+            requestAgain = true;
+          }
+        }, (e) => {
+          if (e.status === 401) {
+            window.location = '/login.html';
+          }
+          working[url].onError(e);
+          delete working[url];
+        }, () => {
+          if (requestAgain) {
+            console.log('requestAgain');
+            request(url, true);
+          } else {
+            working[url].onCompleted();
+            working[url].dispose();
+            delete working[url];
+          }
+        });
+  }
+
   window.MusicService = {
     getPlaylist: (playlistId) => window.MusicService._cachedRequest(`/api/playlists/${playlistId}`),
     getPlaylists: () => window.MusicService._cachedRequest('/api/playlists'),
@@ -16,21 +48,7 @@
 
         if (!working[url]) {
           working[url] = new Rx.Subject();
-          Rx.DOM.getJSON(url)
-            .subscribe((data) => {
-              localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
-              working[url].onNext(data);
-            }, (e) => {
-              if (e.status === 401) {
-                window.location = '/login.html';
-              }
-              working[url].onError(e);
-              delete working[url];
-            }, () => {
-              working[url].onCompleted();
-              working[url].dispose();
-              delete working[url];
-            });
+          request(url);
         }
 
         working[url].subscribe(data => {

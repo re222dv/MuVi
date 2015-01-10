@@ -65,7 +65,10 @@ let register = (server, options, next) => {
                 provider: provider.name,
                 token: token,
                 session: request.sessionObject
-              }).then(() => reply.redirect('/'));
+              }).then(() => reply.redirect('/')).catch((e) => {
+                console.error('oauth error', e);
+                reply(Boom.unauthorized());
+              });
             }
           );
         },

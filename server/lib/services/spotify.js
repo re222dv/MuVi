@@ -86,144 +86,169 @@ let touch = (spotifyEntity) => {
   neo4j.save([spotifyEntity]);
 };
 
-module.exports = (user) =>
-  new Promise((resolve, reject) => {
-  getUser(user.token)
-    .subscribe(spotifyProfile => {
-      neo4j.query(`Match (spotify:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User) Return user, spotify`,
-        {spotifyId: spotifyProfile.spotifyEntity.spotifyId}
-      )
-        .then(existingUsers => (existingUsers[0] || {}))
-        .then(existingUser => {
-          let modifiedSince;
+let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
+  getPlaylists(token, spotifyProfile.spotifyEntity.spotifyId, modifiedSince)
+    //.doOnNext(console.log)
+    .doOnCompleted(() => console.log('getPlaylists'))
+    .flatMap(playlist => {
+      //console.log(playlist);
 
-          if (existingUser && existingUser.user) {
-            user.session.data.userId = existingUser.user.id;
-            modifiedSince = existingUser.spotify.updated;
-            console.log('User exists');
-            if (Date.now() - (modifiedSince || 0) < ONE_HOUR) {
-              console.log(Date.now() - (modifiedSince || 0));
-              return user.session.save().then(resolve);
-            } else {
-              console.log('Updating user details');
-              touch(existingUser.spotify);
-            }
-          }
+      let data = {
+        entities: [
+          spotifyProfile.user,
+          spotifyProfile.spotifyEntity,
+          playlist.playlist,
+          playlist.spotifyEntity
+        ],
+        relations: [
+          relate(spotifyProfile.user, 'owns', playlist.playlist),
+          relate(playlist.playlist, 'is', playlist.spotifyEntity),
+        ],
+      };
 
-          getPlaylists(user.token, spotifyProfile.spotifyEntity.spotifyId, modifiedSince)
-            //.doOnNext(console.log)
-            .doOnCompleted(() => console.log("getPlaylists"))
-            .flatMap(playlist => {
-              //console.log(playlist);
+      return getPlaylist(token, playlist.tracks, modifiedSince)
+        .doOnError(console.log)
+        .doOnCompleted(() => console.log('getPlaylist'))
+        .flatMap(playlistData => {
+          data.entities = data.entities.concat(playlistData.entities);
+          data.relations = data.relations
+            .concat(playlistData.relations)
+            .concat(playlistData.entities
+              .filter(entity => entity.type === 'Song')
+              .map(relate(playlist.playlist, 'contains'))
+          );
+          return newEntities(data)
+            .then(data => {
+              let newArtists = data.entities
+                .filter(entity => entity.id === undefined)
+                .filter(entity => entity.type === 'Artist');
 
-              let data = {
-                entities: [
-                  spotifyProfile.user,
-                  spotifyProfile.spotifyEntity,
-                  playlist.playlist,
-                  playlist.spotifyEntity
-                ],
-                relations: [
-                  relate(spotifyProfile.user, 'is', spotifyProfile.spotifyEntity),
-                  relate(spotifyProfile.user, 'owns', playlist.playlist),
-                  relate(playlist.playlist, 'is', playlist.spotifyEntity),
-                ],
-              };
+              let freebaseArtists = newArtists
+                .map(artist => artist.name)
+                .map(getArtist);
 
-              return getPlaylist(user.token, playlist.tracks, modifiedSince)
-                .doOnError(console.log)
-                .doOnCompleted(() => console.log("getPlaylist"))
-                .flatMap(playlistData => {
-                  data.entities = data.entities.concat(playlistData.entities);
-                  data.relations = data.relations
-                    .concat(playlistData.relations)
-                    .concat(playlistData.entities
-                      .filter(entity => entity.type === 'Song')
-                      .map(relate(playlist.playlist, 'contains'))
-                  );
-                  return newEntities(data)
-                    .then(data => {
-                      let newArtists = data.entities
-                        .filter(entity => entity.id === undefined)
-                        .filter(entity => entity.type === 'Artist');
-
-                      let freebaseArtists = newArtists
-                        .map(artist => artist.name)
-                        .map(getArtist);
-
-                      return Promise.all([
-                        neo4j.create(data.entities, data.relations)
-                      ].concat(freebaseArtists))
-                        .then(promises => promises.slice(1))
-                        .then(freebaseArtists => {
-                          let data = {
-                            entities: newArtists.concat(
-                              freebaseArtists.filter(artist => artist !== undefined)
-                            ),
-                            relations: [],
-                          };
-                          newArtists.forEach((artist, index) => {
-                            if (freebaseArtists[index] !== undefined) {
-                              data.relations.push(relate(artist, 'is', freebaseArtists[index]));
-                            }
-                          });
-
-                          return neo4j.create(data.entities, data.relations);
-                        })
-                        .catch(console.error);
-                    })
-                    .catch(console.error);
-                });
-            })
-            .doOnError(console.log)
-            .doOnCompleted(() => console.log("flatMap"))
-            .subscribeOnCompleted(() => {
-              console.log('completyd');
-              neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
-                                   Where not (:YouTubeVideo)<--(song:Song)
-                                   Return song, artist`)
-                .then(rows => Promise.all(
-                  rows.map(row => getVideo(row.song, row.artist.mid))
-                ))
-                .then(videos => {
+              return Promise.all([
+                neo4j.create(data.entities, data.relations)
+              ].concat(freebaseArtists))
+                .then(promises => promises.slice(1))
+                .then(freebaseArtists => {
                   let data = {
-                    entities: [],
+                    entities: newArtists.concat(
+                      freebaseArtists.filter(artist => artist !== undefined)
+                    ),
                     relations: [],
                   };
-                  videos
-                    .filter(video => video !== undefined)
-                    .forEach(video => {
-                      console.log('video for', video.song.name);
-                      data.entities.push(video.song);
-                      data.entities.push(video.video);
-                      data.entities.push(video.thumbnail);
+                  newArtists.forEach((artist, index) => {
+                    if (freebaseArtists[index] !== undefined) {
+                      data.relations.push(relate(artist, 'is', freebaseArtists[index]));
+                    }
+                  });
 
-                      data.relations.push(relate(video.song, 'video', video.video));
-                      data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
-                    });
+                  return neo4j.create(data.entities, data.relations);
+                });
+            });
+        });
+    })
+    .doOnError(() =>
+      redis.del(`updating-${userId}`)
+        .then(() => redis.pub(`updated-${userId}`, false))
+    )
+    .doOnCompleted(() => console.log('flatMap'))
+    .subscribeOnCompleted(() => {
+      console.log('completyd');
+      neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
+                   Where not (:YouTubeVideo)<--(song:Song)
+                   Return song, artist`)
+        .then(rows => Promise.all(
+          rows.map(row => getVideo(row.song, row.artist.mid))
+        ))
+        .then(videos => {
+          let data = {
+            entities: [],
+            relations: [],
+          };
+          videos
+            .filter(video => video !== undefined)
+            .forEach(video => {
+              console.log('video for', video.song.name);
+              data.entities.push(video.song);
+              data.entities.push(video.video);
+              data.entities.push(video.thumbnail);
 
-                  return newVideos(data);
-                })
-                .then(data => neo4j.create(data.entities, data.relations))
-                .catch(console.error)
-                .then(() => console.log('done'))
-                .then(() => console.log('query'))
+              data.relations.push(relate(video.song, 'video', video.video));
+              data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
+            });
+
+          return newVideos(data);
+        })
+        .then(data => neo4j.create(data.entities, data.relations))
+        .then(() => console.log('done'))
+        .then(() => redis.del(`updating-${userId}`))
+        .then(() => redis.pub(`updated-${userId}`, true))
+        .catch(() =>
+          redis.del(`updating-${userId}`)
+            .then(() => redis.pub(`updated-${userId}`, false)));
+    });
+
+module.exports = (user) =>
+  new Promise((resolve, reject) => {
+    getUser(user.token)
+      .subscribe(spotifyProfile => {
+        neo4j.query('Match (spotify:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User)' +
+                    'Return user, spotify',
+          {spotifyId: spotifyProfile.spotifyEntity.spotifyId}
+        )
+          .then(existingUsers => (existingUsers[0] || {}))
+          .then(existingUser => {
+            let modifiedSince;
+
+            if (existingUser && existingUser.user) {
+              user.session.data.userId = existingUser.user.id;
+              modifiedSince = existingUser.spotify.updated;
+              console.log('User exists');
+              if (Date.now() - (modifiedSince || 0) < ONE_HOUR) {
+                console.log(Date.now() - (modifiedSince || 0));
+                return user.session.save().then(resolve);
+              } else {
+                redis.set(`updating-${existingUser.user.id}`, true)
+                  .then(() => user.session.save())
+                  .then(resolve)
+                  .then(() => getUserPlaylists(
+                    existingUser.user.id,
+                    user.token,
+                    spotifyProfile,
+                    modifiedSince
+                  ));
+                console.log('Updating user details');
+                touch(existingUser.spotify);
+              }
+            } else {
+              neo4j.create(
+                [spotifyProfile.user, spotifyProfile.spotifyEntity],
+                [relate(spotifyProfile.user, 'is', spotifyProfile.spotifyEntity)]
+              )
+                .then(() => console.log('Here'))
                 .then(() => neo4j.query(
                   'Match (:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User) Return user.id',
                   {spotifyId: spotifyProfile.spotifyEntity.spotifyId}
                 ))
                 .then((result) => {
+                  console.log(result)
                   if (!result[0]) {
-                    reject()
-                  };
+                    reject();
+                  }
                   user.session.data.userId = result[0]['user.id'];
                   return user.session.save();
                 })
-                .then(() => console.log('resolve'))
+                .then(() => console.log('Here1'))
+                .then(() => redis.set(`updating-${user.session.data.userId}`, true))
+                .catch(console.error)
+                .then(() => console.log('Here2'))
                 .then(resolve)
-                .catch(console.err);
-            });
-        })
-        .catch(console.log);
-    });
+                .then(() => console.log('Here3'))
+                .then(() => getUserPlaylists(user.session.data.userId, user.token, spotifyProfile));
+            }
+          })
+          .catch(reject);
+      }, reject);
   });

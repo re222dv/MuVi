@@ -1,6 +1,7 @@
 let Boom = require('boom');
-import neo4j from './model/DAL/neo4j';
+import neo4j from './model/DAL/neo4j.js';
 import spotify from './model/DAL/spotify.js';
+let redis = require('./model/DAL/redis.js');
 
 export var routes = [
   {
@@ -8,7 +9,27 @@ export var routes = [
     path: '/api/playlists',
     handler: (request, reply) => {
       if (request.session.userId) {
-        neo4j.getUserPlaylists(request.session.userId).then(reply);
+        redis.get(`updating-${request.session.userId}`)
+          .then((updateing) => {
+            if (updateing && request.query.wait !== undefined) {
+              redis.sub(`updated-${request.session.userId}`)
+                .then(subscriber => {
+                  subscriber.on('message', (_, success) => {
+                    subscriber.unsubscribe();
+                    neo4j.getUserPlaylists(request.session.userId).then(reply);
+                  })
+                })
+            } else {
+              neo4j.getUserPlaylists(request.session.userId)
+                .then(playlists => {
+                  if (updateing) {
+                    reply(playlists).header('x-updating', 'updating');
+                  } else {
+                    reply(playlists);
+                  }
+                });
+            }
+          })
       } else {
         reply(Boom.unauthorized());
       }
