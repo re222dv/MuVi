@@ -67,7 +67,7 @@ let register = (server, options, next) => {
                 session: request.sessionObject
               }).then(() => reply.redirect('/')).catch((e) => {
                 console.error('oauth error', e);
-                reply(Boom.unauthorized());
+                reply.redirect('/');
               });
             }
           );

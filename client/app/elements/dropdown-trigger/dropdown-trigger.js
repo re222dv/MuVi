@@ -2,7 +2,7 @@
   'use strict';
 
   Polymer('dropdown-trigger', {
-    toggle: function() {
+    toggle: function () {
       if (!this.dropdown) {
         this.dropdown = this.querySelector('paper-dropdown');
       }

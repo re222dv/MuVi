@@ -18,6 +18,10 @@ div {
   }
 }
 
+paper-item .button-content {
+  width: 100%;
+}
+
 @media (max-width: 800px) {
   paper-item::shadow .button-content[layout][horizontal] {
     flex-direction: column;
