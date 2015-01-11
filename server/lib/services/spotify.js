@@ -1,18 +1,19 @@
-let autoCurry = require('auto-curry');
 let Rx = require('rx');
 import {getArtist} from '../model/DAL/freebase.js';
 import {getUser, getPlaylists, getPlaylist} from '../model/DAL/spotify.js';
-import {getVideo} from '../model/DAL/youtube.js';
+import {getMissingVideos} from './youtube.js';
 import neo4j from '../model/DAL/neo4j.js';
+import {relate} from '../helpers.js';
 let redis = require('../model/DAL/redis');
 
 //const ONE_HOUR = 1000 * 60 * 60;
 const ONE_HOUR = 1000 * 60;
 
-let relate = autoCurry((entity, label, otherEntity) => ({
-  start: entity, end: otherEntity, label: label
-}));
-
+/**
+ * Match existing entities against the new by spoitifyId so that existing are merged.
+ * @param {Array<{Entity}>} entities.entities
+ * @param {Array<{Relation}>} entities.relations
+ */
 let newEntities = (entities) =>
   // Get all existing SpotifyEntities with same Spotify id as any of the new
   neo4j.query(`Match (spotify:SpotifyEntity)<--(entity)
@@ -22,7 +23,6 @@ let newEntities = (entities) =>
       .filter(entity => entity.type === 'SpotifyEntity')
       .map(entity => entity.spotifyId)}
   )
-  //.then(existingEntities => existingEntities.map(existingEntity => existingEntity.spotifyId))
   .then(existingEntities => {
     let existingIds = existingEntities.map(entity => ({
       entity: entity.entity.id,
@@ -45,38 +45,6 @@ let newEntities = (entities) =>
     return {entities: entities.entities, relations: entities.relations};
   });
 
-let newVideos = (entities) =>
-  // Get all existing SpotifyEntities with same Spotify id as any of the new
-  neo4j.query(`Match (video:YouTubeVideo)<--(entity)
-               Where video.youtubeId IN {ids}
-               Return video, entity`,
-    {ids: entities.entities
-      .filter(entity => entity.type === 'YouTubeVideo')
-      .map(entity => entity.youtubeId)}
-  )
-    //.then(existingEntities => existingEntities.map(existingEntity => existingEntity.spotifyId))
-    .then(existingEntities => {
-      let existingIds = existingEntities.map(entity => ({
-        entity: entity.entity.id,
-        video: entity.video.youtubeId,
-        videoId: entity.video.id,
-      }));
-
-      // Add existing ids to entities
-      entities.relations
-        .filter(relation => relation.end.type === 'YouTubeVideo')
-        .forEach(relation => {
-          let existingId = existingIds.filter(id => id.video === relation.end.youtubeId);
-
-          if (existingId.length) {
-            relation.start.id = existingId[0].entity;
-            relation.end.id = existingId[0].videoId;
-          }
-        });
-
-      return {entities: entities.entities, relations: entities.relations};
-    });
-
 /**
  * Updates the update time to current time
  * @param {SpotifyEntity} spotifyEntity
@@ -86,6 +54,9 @@ let touch = (spotifyEntity) => {
   neo4j.save([spotifyEntity]);
 };
 
+/**
+ * Get all the users playlists
+ */
 let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
   getPlaylists(token, spotifyProfile.spotifyEntity.spotifyId, modifiedSince)
     .doOnCompleted(() => console.log('getPlaylists'))
@@ -150,64 +121,24 @@ let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
             });
         });
     })
-    .doOnError(() =>
-      redis.del(`updating-${userId}`)
-        .then(() => redis.pub(`updated-${userId}`, false))
-    )
     .doOnCompleted(() => console.log('flatMap'))
-    .subscribeOnCompleted(() => {
-      console.log('completed');
-      neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
-                   Where not (:YouTubeVideo)<--(song:Song)
-                   Return song, artist`)
-        .then(rows => {
-          let subject = new Rx.Subject();
-
-          subject
-            .flatMap(chunk => Promise.all(chunk.map(row => getVideo(row.song, row.artist.mid))))
-            .flatMap(videos => {
-              let data = {
-                entities: [],
-                relations: [],
-              };
-              videos
-                .filter(video => video !== undefined)
-                .forEach(video => {
-                  console.log('video for', video.song.name);
-                  data.entities.push(video.song);
-                  data.entities.push(video.video);
-                  data.entities.push(video.thumbnail);
-
-                  data.relations.push(relate(video.song, 'video', video.video));
-                  data.relations.push(relate(video.video, 'thumbnail', video.thumbnail));
-                });
-
-              return newVideos(data);
-            })
-            .flatMap(data => neo4j.create(data.entities, data.relations))
-            .doOnError((e) => console.log('Video Error', e))
-            .doOnCompleted(() => console.log('done'))
-            .subscribeOnCompleted(() =>
-              redis.del(`updating-${userId}`)
-                .then(() => redis.pub(`updated-${userId}`, true))
-                .catch(() =>
-                  redis.del(`updating-${userId}`)
-                    .then(() => redis.pub(`updated-${userId}`, false))));
-
-          let pushChunk;
-          pushChunk = () => {
-            if (rows.length) {
-              subject.onNext(rows.splice(0, 50));
-              setTimeout(pushChunk, 50);
-            } else {
-              subject.onCompleted();
-              subject.dispose();
-            }
-          };
-          pushChunk();
-        });
+    .finally(() =>
+      getMissingVideos()
+        .then(() => redis.del(`updating-${userId}`))
+        .then(() => redis.pub(`updated-${userId}`, true))
+        .catch(() =>
+          redis.del(`updating-${userId}`)
+            .then(() => redis.pub(`updated-${userId}`, false))))
+    .subscribeOnError((e) => {
+      console.error('Playlist error', e);
+      redis.pub(`updated-${userId}`, false);
     });
 
+/**
+ * Gets a users profile and updates her playlists if needed
+ * @param {Token} user.token
+ * @param {Session} user.session
+ */
 module.exports = (user) =>
   new Promise((resolve, reject) => {
     getUser(user.token)
@@ -245,25 +176,19 @@ module.exports = (user) =>
                 [spotifyProfile.user, spotifyProfile.spotifyEntity],
                 [relate(spotifyProfile.user, 'is', spotifyProfile.spotifyEntity)]
               )
-                .then(() => console.log('Here'))
                 .then(() => neo4j.query(
                   'Match (:SpotifyEntity {spotifyId : {spotifyId}})<--(user:User) Return user.id',
                   {spotifyId: spotifyProfile.spotifyEntity.spotifyId}
                 ))
                 .then((result) => {
-                  console.log(result)
                   if (!result[0]) {
                     reject();
                   }
                   user.session.data.userId = result[0]['user.id'];
                   return user.session.save();
                 })
-                .then(() => console.log('Here1'))
                 .then(() => redis.set(`updating-${user.session.data.userId}`, true))
-                .catch(console.error)
-                .then(() => console.log('Here2'))
                 .then(resolve)
-                .then(() => console.log('Here3'))
                 .then(() => getUserPlaylists(user.session.data.userId, user.token, spotifyProfile));
             }
           })

@@ -58,6 +58,12 @@ let createSpotifyEntity = (callback) => (entity) => callback({
   updated: Date.now(),
 }, entity);
 
+/**
+ * Creates Song, Album, Artist and SpotifyEntities from an array of spotify song objects
+ *
+ * @param {Array} songs
+ * @returns Array.<{entities: Song|Album|Artist|SpotifyEntity, relations: Relation}>
+ */
 let createMusicEntities = (songs) => {
   let entities = [];
   let relations = [];

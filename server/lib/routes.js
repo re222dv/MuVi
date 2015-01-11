@@ -1,6 +1,5 @@
 let Boom = require('boom');
 import neo4j from './model/DAL/neo4j.js';
-import spotify from './model/DAL/spotify.js';
 let redis = require('./model/DAL/redis.js');
 
 export var routes = [
@@ -13,12 +12,12 @@ export var routes = [
           .then((updateing) => {
             if (updateing && request.query.wait !== undefined) {
               redis.sub(`updated-${request.session.userId}`)
-                .then(subscriber => {
+                .then(subscriber =>
                   subscriber.on('message', (_, success) => {
                     subscriber.unsubscribe();
                     neo4j.getUserPlaylists(request.session.userId).then(reply);
                   })
-                })
+                );
             } else {
               neo4j.getUserPlaylists(request.session.userId)
                 .then(playlists => {
@@ -29,7 +28,7 @@ export var routes = [
                   }
                 });
             }
-          })
+          });
       } else {
         reply(Boom.unauthorized());
       }
@@ -52,20 +51,5 @@ export var routes = [
         reply(Boom.unauthorized());
       }
     },
-  },
-  {
-    method: 'GET',
-    path: '/my',
-    handler: (request, reply) => {
-      spotify(request.session.oauth.spotify.token).doOnError(() => console.log('doOnError')).subscribeOnCompleted(() => console.log('doOnCompleted'));
-      reply('downloading');
-    }
-  },
-  {
-    method: 'GET',
-    path: '/songs',
-    handler: (request, reply) => {
-      neo4j.getEntities('Song').then(reply);
-    }
   },
 ];
