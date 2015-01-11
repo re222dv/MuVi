@@ -12,19 +12,25 @@ export var routes = [
           .then((updateing) => {
             if (updateing && request.query.wait !== undefined) {
               redis.sub(`updated-${request.session.userId}`)
-                .then(subscriber =>
+                .then(subscriber => {
+                  let timeout = setTimeout(() => {
+                    subscriber.unsubscribe();
+                    reply().code(204).header('x-updating', 'updating');
+                  }, 20000);
+
                   subscriber.on('message', (_, success) => {
                     subscriber.unsubscribe();
                     neo4j.getUserPlaylists(request.session.userId)
                       .then(playlists => {
+                        clearTimeout(timeout);
                         if (success === 'false') {
                           reply(playlists).code(203);
                         } else {
                           reply(playlists);
                         }
                       });
-                  })
-                );
+                  });
+                });
             } else {
               neo4j.getUserPlaylists(request.session.userId)
                 .then(playlists => {

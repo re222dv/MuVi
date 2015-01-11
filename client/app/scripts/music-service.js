@@ -11,11 +11,12 @@
     Rx.DOM.get(wait ? `${url}?wait` : url)
       .subscribe((xhr) => {
         window.authorized();
-        let data = JSON.parse(xhr.responseText);
-        localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
-        working[url].onNext(data);
 
-        console.log('header', xhr.getResponseHeader('x-updating'));
+        if (xhr.status !== 204) {
+          let data = JSON.parse(xhr.responseText);
+          localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
+          working[url].onNext(data);
+        }
 
         if (xhr.getResponseHeader('x-updating')) {
           requestAgain = true;
