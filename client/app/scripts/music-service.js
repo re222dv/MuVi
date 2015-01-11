@@ -12,7 +12,9 @@
       .subscribe((xhr) => {
         window.authorized();
 
-        if (xhr.status !== 204) {
+        if (xhr.status === 0) { // Offline
+          working[url].onError('No response');
+        } else if (xhr.status !== 204) {
           let data = JSON.parse(xhr.responseText);
           localStorage.setItem(url, JSON.stringify({timestamp: Date.now(), data}));
           working[url].onNext(data);
@@ -65,6 +67,8 @@
           if (!cache) {
             subject.onError(e);
           }
+          subject.onCompleted();
+          subject.dispose();
         }, () => {
           subject.onCompleted();
           subject.dispose();

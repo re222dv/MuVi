@@ -1,7 +1,6 @@
 CACHE MANIFEST
 index.html
 styles/main.css
-scripts/app.js
 bower_components/webcomponentsjs/webcomponents.min.js
 elements/elements.vulcanized.html
 images/muvi-logo.svg

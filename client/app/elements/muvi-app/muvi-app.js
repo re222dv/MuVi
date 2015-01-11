@@ -10,6 +10,9 @@
         console.log(playlist);
         this.queue = false;
         this.playlistName = playlist.name;
+      }, () => {
+        this.queue = false;
+        this.playlistName = '';
       });
     },
     toggleQueue: function () {
