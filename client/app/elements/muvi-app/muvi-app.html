@@ -9,7 +9,6 @@
 <link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../elements.html">
 
 <polymer-element name="muvi-app" attributes="">
@@ -25,10 +24,7 @@
             {{playlist.name}}
           </paper-item>
         </template>
-        <div layout vertical center>
-          <paper-spinner active?="{{displaySpinner}}"></paper-spinner>
-          <span hidden?="{{!displaySpinner}}" class="loading-text">Getting new data</span>
-        </div>
+        <loading-indicator id="indicator"></loading-indicator>
       </core-header-panel>
       <core-header-panel main>
         <core-toolbar layout vertical>

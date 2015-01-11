@@ -21,12 +21,3 @@ paper-icon-button[selected] {
 [drawer] {
   background-color: $blue-grey-700;
 }
-
-paper-spinner {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.loading-text {
-  @include font-caption;
-}

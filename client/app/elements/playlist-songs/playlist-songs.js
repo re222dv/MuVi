@@ -3,11 +3,10 @@
 
   Polymer('playlist-songs', {
     playlistIdChanged: function (_, playlistId) {
-      console.log('asd');
-      console.log(playlistId);
       this.playlistId = playlistId;
+      this.playlist = [];
       music.getPlaylist(playlistId)
-        .subscribe(playlist => this.playlist = playlist);
+        .subscribe(this.$.indicator.onData(playlist => this.playlist = playlist));
     },
     play: function (event) {
       let songId = event.currentTarget.getAttribute('data-songid');

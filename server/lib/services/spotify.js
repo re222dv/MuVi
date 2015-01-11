@@ -7,7 +7,7 @@ import {relate} from '../helpers.js';
 let redis = require('../model/DAL/redis');
 
 //const ONE_HOUR = 1000 * 60 * 60;
-const ONE_HOUR = 1000 * 60;
+const ONE_HOUR = 1000 * 10;
 
 /**
  * Match existing entities against the new by spoitifyId so that existing are merged.
@@ -126,9 +126,11 @@ let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
       getMissingVideos()
         .then(() => redis.del(`updating-${userId}`))
         .then(() => redis.pub(`updated-${userId}`, true))
-        .catch(() =>
+        .catch(e => {
+          console.error('Video Error', e);
           redis.del(`updating-${userId}`)
-            .then(() => redis.pub(`updated-${userId}`, false))))
+            .then(() => redis.pub(`updated-${userId}`, false));
+        }))
     .subscribeOnError((e) => {
       console.error('Playlist error', e);
       redis.pub(`updated-${userId}`, false);

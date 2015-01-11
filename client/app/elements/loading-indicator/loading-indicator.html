@@ -1,0 +1,19 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<polymer-element name="loading-indicator" attributes="">
+  <template>
+    <link rel="stylesheet" href="loading-indicator.css">
+    <div layout vertical center>
+      <paper-spinner active?="{{activateSpinner}}" hidden?="{{hideSpinner}}"></paper-spinner>
+      <span hidden?="{{hideSpinner}}" class="loading-text">Getting new data</span>
+      <span hidden?="{{!loadPartial}}" class="error" on-click="{{hideError}}">
+        Some of the data could not be loaded, a new attempt will be made on you next login.
+      </span>
+      <span hidden?="{{!loadFailed}}" class="error" on-click="{{hideError}}">
+        New data could not be loaded, please try again later.
+      </span>
+    </div>
+  </template>
+  <script src="loading-indicator.js"></script>
+</polymer-element>

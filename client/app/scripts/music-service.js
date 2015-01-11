@@ -19,6 +19,8 @@
 
         if (xhr.getResponseHeader('x-updating')) {
           requestAgain = true;
+        } else if (xhr.status === 203) {
+          working[url].onError('partial response');
         }
       }, (e) => {
         if (e.status === 401) {
@@ -42,10 +44,14 @@
     getPlaylist: (playlistId) => window.MusicService._cachedRequest(`/api/playlists/${playlistId}`),
     getPlaylists: () => window.MusicService._cachedRequest('/api/playlists'),
     _cachedRequest: function (url) {
-      let subject = new Rx.ReplaySubject(1); // Buffer at most one response
       let cache = JSON.parse(localStorage.getItem(url));
 
       if (!cache || !window.authKnown || Date.now() - cache.timestamp > TEN_MINUTES) {
+        let subject = new Rx.ReplaySubject(1); // Buffer at most one response
+
+        if (cache) {
+          subject.onNext(cache.data);
+        }
 
         if (!working[url]) {
           working[url] = new Rx.Subject();
@@ -62,13 +68,11 @@
           subject.onCompleted();
           subject.dispose();
         });
+
+        return subject.asObservable();
       }
 
-      if (cache) {
-        subject.onNext(cache.data);
-      }
-
-      return subject.asObservable();
+      return Rx.Observable.just(cache.data);
     }
   };
 })(Rx);

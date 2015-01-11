@@ -15,7 +15,14 @@ export var routes = [
                 .then(subscriber =>
                   subscriber.on('message', (_, success) => {
                     subscriber.unsubscribe();
-                    neo4j.getUserPlaylists(request.session.userId).then(reply);
+                    neo4j.getUserPlaylists(request.session.userId)
+                      .then(playlists => {
+                        if (success === 'false') {
+                          reply(playlists).code(203);
+                        } else {
+                          reply(playlists);
+                        }
+                      });
                   })
                 );
             } else {

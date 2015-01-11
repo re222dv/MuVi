@@ -65,10 +65,12 @@ let register = (server, options, next) => {
                 provider: provider.name,
                 token: token,
                 session: request.sessionObject
-              }).then(() => reply.redirect('/')).catch((e) => {
-                console.error('oauth error', e);
-                reply.redirect('/');
-              });
+              })
+                .then(() => reply.redirect('/').temporary(true))
+                .catch((e) => {
+                  console.error('oauth error', e);
+                  reply.redirect('/').temporary(true);
+                });
             }
           );
         },
