@@ -34,9 +34,12 @@ paper-item .button-content {
   }
 
   div {
+    display: block !important;
     width: 100%;
 
     > span {
+      display: inline;
+
       @include font-caption;
       width: auto;
 
