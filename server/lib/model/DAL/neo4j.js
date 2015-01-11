@@ -15,6 +15,12 @@ let relationSchema = Joi.object().keys({
   label: Joi.string().alphanum().min(1).optional(),
 });
 
+/**
+ * Validates an entity
+ *
+ * @param {Entity} entity
+ * @returns {Promise} resolved on success, rejected on failure
+ */
 let validate = (entity) =>
   new Promise(resolve => {
     if (schemas[entity.type] === undefined) throw 'Not a valid type';
@@ -22,11 +28,22 @@ let validate = (entity) =>
     Joi.validate(entity, schemas[entity.type], promise(resolve));
   });
 
+/**
+ * Validates relation
+ *
+ * @param {Relation} relation
+ * @returns {Promise} resolved on success, rejected on failure
+ */
 let validateRelation = (relation) =>
   new Promise(resolve =>
     Joi.validate(relation, relationSchema, promise(resolve)));
 
 let neo4j = {
+  /**
+   * @param {String} query Cypher query
+   * @param {object} parameters Query parameters
+   * @returns {Promise<Array>}
+   */
   query: (query, parameters) =>
     new Promise(resolve =>
       db.query(query, parameters, promise(resolve)))
@@ -40,6 +57,11 @@ let neo4j = {
         return row;
       })),
 
+  /**
+   * @param {Array.<Entity>} entities Entities to match or insert
+   * @param {Array.<Relation>} relations Relations to assert
+   * @returns {Promise}
+   */
   create: (entities, relations) =>
     Promise.all(entities.map(validate))
       .then(() => entities.map(entity => entity.id ? entity.old = true : entity.id = uuid.v1()))
@@ -90,6 +112,10 @@ let neo4j = {
           db.query(`${match} ${create} ${createUnique}`, placeholders, promise(resolve)));
       }),
 
+  /**
+   * @param {Array.<Entity>} entities Entities to update
+   * @returns {Promise}
+   */
   save: (entities) =>
     Promise.all(entities.map(validate))
       .then(() => {
@@ -113,30 +139,29 @@ let neo4j = {
           db.query(query, placeholders, promise(resolve)));
       }),
 
-
-  getEntities: (type, key, value) => {
-    let where = '';
-
-    if (key && value instanceof Array) {
-      where = `WHERE n.${key} IN {value}`;
-    } else if (key) {
-      where = `WHERE n.${key} = {value}`;
-    }
-
-    return new Promise(resolve =>
-      db.query(`Match (n:${type}) ${where} Return n`, {value}, promise(resolve)))
-      .then(result => result.map(row => row.n._data.data));
-  },
-
+  /**
+   * Get a users playlists
+   *
+   * @param {String} userId
+   * @returns {Promise}
+   */
   getUserPlaylists: (userId) =>
     new Promise(resolve =>
       db.query(`Match (:User {id:{userId}})-->(p:Playlist)-->(:Song)-->(:YouTubeVideo)
                 Return DISTINCT p`, {userId}, promise(resolve)))
       .then(result => result.map(row => row.p._data.data)),
 
+  /**
+   * Get a playlist
+   *
+   * @param {String} userId A user related to the playlists
+   * @param {String} playlistId
+   * @returns {Promise}
+   */
   getPlaylist: (userId, playlistId) =>
     new Promise(resolve =>
-      db.query(`Match (:User {id:{userId}})-->(p:Playlist {id:{playlistId}})-->(s:Song)-->(al:Album),
+      db.query(`Match (:User {id:{userId}})-->(p:Playlist {id:{playlistId}}),
+                      (p)-->(s:Song)-->(al:Album),
                       (v:YouTubeVideo)<--(s)-->(ar:Artist)
                 Return s,al,p,
                        head(collect(ar)) as ar,

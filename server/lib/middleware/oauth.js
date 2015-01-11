@@ -5,6 +5,23 @@ let Rx = require('rx');
 
 var authedTokens = new Rx.Subject();
 
+/**
+ * Handles oauth sign ins
+ *
+ * @param server Handled by Hapi
+ * @param options Options object
+ * @callback {String} options.host Base host path
+ * @param {Array.<{
+ *    clientId: String,
+ *    clientSecret: String,
+ *    name: String,
+ *    site: String,
+ *    authorizationPath:
+ *    String, tokenPath: String
+ *  }>} [options.providers]
+ * @callback [options.callback] Called on sign in, should return a promise
+ * @param next Handled by Hapi
+ */
 let register = (server, options, next) => {
   options.providers = options.providers || [];
   options.callback = options.callback || Promise.resolve();

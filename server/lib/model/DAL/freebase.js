@@ -1,6 +1,12 @@
 let request = require('request-promise');
 import {key} from '../../../config/google_secret.js';
 
+/**
+ * Search Freebase for an artist
+ *
+ * @param {String} name Artist name
+ * @returns {Promise<FreebaseEntity>}
+ */
 export function getArtist(name) {
   let params = {
     query: encodeURIComponent(name),

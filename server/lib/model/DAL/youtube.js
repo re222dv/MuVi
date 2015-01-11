@@ -1,6 +1,13 @@
 let request = require('request-promise');
 import {key} from '../../../config/google_secret.js';
 
+/**
+ * Search Youtube for an video
+ *
+ * @param {String} song Song name
+ * @param {String} artistMid Freebase mid of the artist
+ * @returns {Promise<{{song: String, video: YouTubeVideo, thumbnail: Image}}>}
+ */
 export function getVideo(song, artistMid) {
   let params = {
     q: encodeURIComponent(song.name),

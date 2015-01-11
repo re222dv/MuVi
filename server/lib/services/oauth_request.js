@@ -11,6 +11,7 @@ let Rx = require('rx');
  */
 let oauthRequest = (token, method, url, modifiedSince) => {
   let tokenPromise = Promise.resolve(token.access_token);
+  // TODO Handle expired token (Not currently needed)
   //if (token.expired()) {
   //  console.log('refresh');
   //  token.refresh(function (error, result) {
@@ -49,7 +50,7 @@ let oauthRequest = (token, method, url, modifiedSince) => {
       response.dispose();
     }));
 
-  return response;
+  return response.asObservable();
 };
 
 export default oauthRequest;

@@ -8,6 +8,9 @@ let setCookie = (reply, sessionId) => {
   });
 };
 
+/**
+ * Handles Sessions
+ */
 let register = (server, options, next) => {
 
   server.ext('onPreAuth', (request, reply) => {
@@ -22,7 +25,6 @@ let register = (server, options, next) => {
       Session.restore(sessionId)
         .then(session => {
           if (!session.data) {
-            console.log('new session');
             session = Session.create();
             setCookie(reply, session.id);
           }
@@ -37,7 +39,6 @@ let register = (server, options, next) => {
 
   server.ext('onPreResponse', (request, reply) => {
     if (request.sessionObject.isDestroyed) {
-      //reply.unstate('sessionId');
       setCookie(reply, null);
       reply.continue();
     } else {
