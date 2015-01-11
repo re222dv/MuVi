@@ -124,7 +124,7 @@ paper-slider::shadow {
 @media (max-width: 600px) {
   .video[fullscreen] {
     #player {
-      height: 40px;
+      height: 100px;
     }
   }
   .video:not([fullscreen]) {
