@@ -25,3 +25,7 @@ HASH=`md5sum dist/cache.appcache | awk '{print $1;}'`
 
 mv "dist/cache.appcache" "dist/${HASH}.appcache"
 sed -i "s/cache\.appcache/${HASH}\.appcache/" dist/index.html
+
+# Copy images (Grunt destroys them)
+cp app/*.png dist/
+cp app/*.ico dist/
