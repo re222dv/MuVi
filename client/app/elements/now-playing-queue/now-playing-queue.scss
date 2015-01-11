@@ -31,12 +31,18 @@ div {
     align-items: flex-start;
   }
 
+  core-icon {
+    position: absolute !important;
+    top: calc(50% - 12px);
+  }
+
   span:only-of-type {
     display: block;
     width: 100%;
   }
 
   div {
+    margin-left: 2rem;
     width: 100%;
 
     > span {
