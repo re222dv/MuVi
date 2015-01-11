@@ -4,19 +4,24 @@
   display: block;
 }
 
-paper-spinner {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
+div[layout][vertical][center] {
+  width: 100%;
 
-span {
-  @include font-caption;
-  margin-bottom: 0.5rem;
-}
+  paper-spinner {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
 
-.error {
-  padding: 0 8px;
-  color: $red-500;
-  text-align: center;
-  cursor: pointer;
+  span {
+    @include font-caption;
+    margin: 0.5rem 0;
+    width: auto;
+  }
+
+  .error {
+    padding: 0 8px;
+    color: $red-500;
+    text-align: center;
+    cursor: pointer;
+  }
 }
