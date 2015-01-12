@@ -10,6 +10,7 @@
 
   Polymer('video-player', {
     fullscreen: false,
+    readyToPlay: false,
     toggleFullscreen: stopProp(function () {
       this.fullscreen = !this.fullscreen;
 
@@ -59,9 +60,15 @@
       this.$.youtube.seekTo(e.target.immediateValue);
     },
     songChange: function (_, nowPlaying) {
-      console.log(nowPlaying);
-      this.song = nowPlaying;
-      this.async(() => this.videoLoaded = true);
+      if (this.readyToPlay) {
+        this.song = nowPlaying;
+      } else {
+        this.whenReady = nowPlaying;
+      }
+      if (!window.nativeWebComponents) {
+        // Browsers without native web components need to show the player before it can be ready
+        this.async(() => this.videoLoaded = true);
+      }
     },
     statusChange: function (_, playing) {
       console.log(playing);
@@ -86,6 +93,7 @@
       } else if (state.data === 2) { // Paused
         this.$.music.setPlaying(false);
       } else if (state.data === 5) { // Cued/Ready to play
+        this.async(() => this.videoLoaded = true);
         if (this.playing) {
           this.$.youtube.setAttribute('videoid', this.$.music.nowPlaying.video.youtubeId);
           this.$.youtube.play();
@@ -94,6 +102,13 @@
       console.log('state', state.data);
     },
     stopProp: stopProp(function () {}),
+    youtubeReady: function () {
+      console.log('Very ready');
+      this.readyToPlay = true;
+      if (this.whenReady) {
+        this.song = this.whenReady;
+      }
+    },
     domReady: function () {
       let mousemoves = Rx.DOM.fromEvent(this.$.player, 'mousemove')
         .where(() => this.fullscreen)

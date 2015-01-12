@@ -18,6 +18,8 @@
         !('import' in document.createElement('link')) ||
         !('content' in document.createElement('template'))) {
       document.write('<script src="bower_components/webcomponentsjs/webcomponents.js"><\/script>')
+    } else {
+      window.nativeWebComponents = true;
     }
   </script>
   <!-- build:vulcanized elements/elements.vulcanized.html -->

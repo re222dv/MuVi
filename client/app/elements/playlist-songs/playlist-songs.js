@@ -22,11 +22,9 @@
     },
     domReady: function () {
       Rx.DOM.fromEvent(window, 'resize')
-        .debounce(500)
+        .debounce(500) // Debounce to avoid crashing the tab in Chrome
         .subscribe(() => {
-          console.log('resize');
           this.$.listWrapper.style.height = (window.innerHeight - 64) + 'px';
-          this.async(() => this.$.list.updateSize());
         });
       this.$.listWrapper.style.height = (window.innerHeight - 64) + 'px';
     },
