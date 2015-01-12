@@ -1,4 +1,4 @@
-(function (music) {
+(function (music, Rx) {
   'use strict';
 
   Polymer('playlist-songs', {
@@ -20,6 +20,16 @@
       let songId = event.currentTarget.getAttribute('data-songid');
       this.$.nowPlaying.queueSong(songId, this.playlistId);
     },
+    domReady: function () {
+      Rx.DOM.fromEvent(window, 'resize')
+        .debounce(500)
+        .subscribe(() => {
+          console.log('resize');
+          this.$.listWrapper.style.height = (window.innerHeight - 64) + 'px';
+          this.async(() => this.$.list.updateSize());
+        });
+      this.$.listWrapper.style.height = (window.innerHeight - 64) + 'px';
+    },
   });
-})(MusicService);
+})(MusicService, Rx);
 

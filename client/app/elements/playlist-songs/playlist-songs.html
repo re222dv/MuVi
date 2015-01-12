@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-list/core-list.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../elements.html">
 
@@ -6,22 +7,26 @@
   <template>
     <link rel="stylesheet" href="playlist-songs.css">
     <service-now-playing id="nowPlaying"></service-now-playing>
-    <template repeat="{{song in playlist.songs}}">
-      <paper-item on-click="{{play}}" data-songid="{{song.id}}">
-        <div flex layout horizontal center>
-          <span>{{song.name}}</span>
-          <div class="info" layout horizontal center>
-            <span>{{song.artist.name}}</span>
-            <span>{{song.album.name}}</span>
-          </div>
-        </div>
-        <context-menu>
-          <paper-item data-songid="{{song.id}}" on-click="{{playSong}}">Play</paper-item>
-          <paper-item data-songid="{{song.id}}" on-click="{{queueSong}}">Add to queue</paper-item>
-        </context-menu>
-      </paper-item>
-    </template>
-    <loading-indicator id="indicator"></loading-indicator>
+    <div id="listWrapper">
+      <loading-indicator id="indicator"></loading-indicator>
+      <core-list id="list" data="{{playlist.songs}}" selectionEnabled="false" height="52">
+        <template>
+          <paper-item data-songid="{{model.id}}" on-click="{{play}}">
+            <div flex layout horizontal center>
+              <span>{{model.name}}</span>
+              <div class="info" layout horizontal center>
+                <span>{{model.artist.name}}</span>
+                <span>{{model.album.name}}</span>
+              </div>
+            </div>
+            <context-menu>
+              <paper-item data-songid="{{model.id}}" on-click="{{playSong}}">Play</paper-item>
+              <paper-item data-songid="{{model.id}}" on-click="{{queueSong}}">Add to queue</paper-item>
+            </context-menu>
+          </paper-item>
+        </template>
+      </core-list>
+    </div>
   </template>
   <script src="playlist-songs.js"></script>
 </polymer-element>

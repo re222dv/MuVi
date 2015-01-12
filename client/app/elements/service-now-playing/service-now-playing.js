@@ -104,6 +104,8 @@
           queue.push(playlist.songs[playlist.songs.findIndex(song => song.id === songId)]);
           if (callback) {
             callback();
+          } else {
+            this.updateStatus();
           }
         }, err => console.error('Error', err));
     },

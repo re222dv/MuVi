@@ -1,0 +1,15 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<polymer-element name="context-menu" attributes="">
+  <template>
+    <link rel="stylesheet" href="context-menu.css">
+    <div id="right-click" on-contextmenu="{{toggle}}"></div>
+    <paper-icon-button icon="more-vert" on-click="{{toggle}}"></paper-icon-button>
+    <paper-dropdown id="menu" halign="right" layered closeSelector="paper-item">
+      <content select="paper-item"></content>
+    </paper-dropdown>
+  </template>
+  <script src="context-menu.js"></script>
+</polymer-element>
