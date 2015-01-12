@@ -7,12 +7,12 @@
   <template>
     <link rel="stylesheet" href="playlist-songs.css">
     <service-now-playing id="nowPlaying"></service-now-playing>
+    <loading-indicator id="indicator"></loading-indicator>
     <div id="listWrapper">
-      <loading-indicator id="indicator"></loading-indicator>
       <core-list id="list" data="{{playlist.songs}}" selectionEnabled="false" height="52">
         <template>
           <paper-item data-songid="{{model.id}}" on-click="{{play}}">
-            <div flex layout horizontal center>
+            <div class="song" flex layout horizontal center>
               <span>{{model.name}}</span>
               <div class="info" layout horizontal center>
                 <span>{{model.artist.name}}</span>
