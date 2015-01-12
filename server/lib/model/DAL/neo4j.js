@@ -163,7 +163,8 @@ let neo4j = {
       db.query(`Match (:User {id:{userId}})-->(p:Playlist {id:{playlistId}}),
                       (p)-->(s:Song)-->(al:Album),
                       (v:YouTubeVideo)<--(s)-->(ar:Artist)
-                Return s,al,p,
+                Return s,p,
+                       head(collect(al)) as al,
                        head(collect(ar)) as ar,
                        head(collect(v)) as v`, {userId, playlistId}, promise(resolve)))
       .then(result => {
