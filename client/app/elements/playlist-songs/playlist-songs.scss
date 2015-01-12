@@ -10,7 +10,7 @@ span {
   width: 34%;
 }
 
-div {
+.info {
   width: 66%;
 
   span {
@@ -23,7 +23,7 @@ paper-item .button-content {
 }
 
 @media (max-width: 800px) {
-  paper-item::shadow .button-content[layout][horizontal] {
+  paper-item>div[layout][horizontal] {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -33,7 +33,7 @@ paper-item .button-content {
     width: 100%;
   }
 
-  div {
+  .info {
     display: block !important;
     width: 100%;
 

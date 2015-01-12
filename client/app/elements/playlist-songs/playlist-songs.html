@@ -8,11 +8,17 @@
     <service-now-playing id="nowPlaying"></service-now-playing>
     <template repeat="{{song in playlist.songs}}">
       <paper-item on-click="{{play}}" data-songid="{{song.id}}">
-        <span>{{song.name}}</span>
-        <div layout horizontal center>
-          <span>{{song.artist.name}}</span>
-          <span>{{song.album.name}}</span>
+        <div flex layout horizontal center>
+          <span>{{song.name}}</span>
+          <div class="info" layout horizontal center>
+            <span>{{song.artist.name}}</span>
+            <span>{{song.album.name}}</span>
+          </div>
         </div>
+        <context-menu>
+          <paper-item data-songid="{{song.id}}" on-click="{{playSong}}">Play</paper-item>
+          <paper-item data-songid="{{song.id}}" on-click="{{queueSong}}">Add to queue</paper-item>
+        </context-menu>
       </paper-item>
     </template>
     <loading-indicator id="indicator"></loading-indicator>

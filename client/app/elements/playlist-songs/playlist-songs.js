@@ -11,7 +11,15 @@
     play: function (event) {
       let songId = event.currentTarget.getAttribute('data-songid');
       this.$.nowPlaying.playPlaylist(this.playlistId, songId);
-    }
+    },
+    playSong: function (event) {
+      let songId = event.currentTarget.getAttribute('data-songid');
+      this.$.nowPlaying.playSong(songId, this.playlistId);
+    },
+    queueSong: function (event) {
+      let songId = event.currentTarget.getAttribute('data-songid');
+      this.$.nowPlaying.queueSong(songId, this.playlistId);
+    },
   });
 })(MusicService);
 

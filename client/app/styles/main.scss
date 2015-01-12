@@ -13,6 +13,12 @@ html /deep/ {
     @include font-button;
     color: rgba(0,0,0,0.87);
   }
+
+  paper-dropdown {
+    paper-item {
+      color: $light-background-text-color;
+    }
+  }
 }
 
 google-youtube[fluid] {

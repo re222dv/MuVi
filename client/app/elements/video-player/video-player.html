@@ -16,7 +16,7 @@
       repeat="{{repeat}}"
       shuffle="{{shuffle}}">
     </service-now-playing>
-    <div class="video" hidden?="{{!videoLoaded}}" fullscreen?="{{fullscreen}}">
+    <div class="video" hidden?="{{!videoLoaded || !song.video.youtubeId}}" fullscreen?="{{fullscreen}}">
       <div class="video-wrapper" layout horizontal center>
         <google-youtube
           videoid="{{song.video.youtubeId}}"

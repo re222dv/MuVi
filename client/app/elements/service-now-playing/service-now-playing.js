@@ -71,20 +71,41 @@
       this.setShuffle(!shuffle);
     },
     playPlaylist: function (playlistId, startSongId) {
-      console.log('playPlaylist');
+      console.log('playPlaylist', playlistId);
       music.getPlaylist(playlistId)
         .subscribe(playlist => {
           queue = playlist.songs;
           this.playSong(startSongId);
         }, err => console.error('Error', err));
     },
-    playSong: function (songId) {
-      console.log('playSong');
+    playSong: function (songId, playlistId) {
+      console.log('playSong', songId);
 
-      index = queue.findIndex(song => song.id === songId);
-      this.updateSong();
-      this.play();
-      console.log('nowPlayling', this.nowPlaying.name);
+      if (playlistId) {
+        this.queueSong(songId, playlistId, () => {
+          index = queue.length - 1;
+          this.updateSong();
+          this.play();
+        });
+      } else {
+        index = queue.findIndex(song => song.id === songId);
+        this.updateSong();
+        this.play();
+        console.log('nowPlayling', this.nowPlaying.name);
+      }
+    },
+    queueSong: function (songId, playlistId, callback) {
+      console.log('queueSong', songId);
+
+      music.getPlaylist(playlistId)
+        .take(1)
+        .subscribe(playlist => {
+          console.log(playlist);
+          queue.push(playlist.songs[playlist.songs.findIndex(song => song.id === songId)]);
+          if (callback) {
+            callback();
+          }
+        }, err => console.error('Error', err));
     },
     updateSong: function () {
       console.log('updateSong');
