@@ -22,5 +22,7 @@ html /deep/ {
 }
 
 google-youtube[fluid] {
+  // Fixes strange bug in Firefox Developer Edition and IE
+  padding: 0 !important;
   height: 100%;
 }

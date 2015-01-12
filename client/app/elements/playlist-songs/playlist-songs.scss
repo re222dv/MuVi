@@ -23,11 +23,6 @@ span {
   }
 }
 
-paper-item .button-content {
-  box-sizing: border-box;
-  width: 100%;
-}
-
 @media (max-width: 800px) {
   paper-item>div[layout][horizontal] {
     flex-direction: column;
