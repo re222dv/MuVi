@@ -9,8 +9,8 @@ import {relate} from '../helpers.js';
  */
 export var getMissingVideos = () =>
   neo4j.query(`Match (song:Song)-->(:Artist)-->(artist:FreebaseEntity)
-                      Where not (:YouTubeVideo)<--(song:Song)
-                      Return song, artist`)
+               Where not (:YouTubeVideo)<--(song:Song)
+               Return song, head(collect(artist)) as artist`)
     .then(rows => new Promise((resolve, reject) => {
       let subject = new Rx.Subject();
 
