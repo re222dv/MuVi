@@ -122,12 +122,10 @@ paper-slider::shadow {
 }
 
 @media (max-width: 600px) {
-  .video[fullscreen] {
-    #player {
-      height: 100px;
-    }
-  }
   .video:not([fullscreen]) {
+    #player {
+      display: block !important;
+    }
     #controls {
       display: none;
     }

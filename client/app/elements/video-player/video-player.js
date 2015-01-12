@@ -11,6 +11,19 @@
   Polymer('video-player', {
     fullscreen: false,
     readyToPlay: false,
+    clickedOnVideo: false,
+    /**
+     * Firefox and Chrome on desktop doesn't require the user to be able to click on the video,
+     * IE and Chrome on Android does. Safari is untested so taking the safe path here. Opera with
+     * blink engine should probably be ok so not filtering that.
+     */
+    get needToClickOnVideo() {
+      let ua = navigator.userAgent.toLowerCase();
+      let isAndroid = ua.indexOf('android') !== -1;
+      let isNotBlink = ua.indexOf('chrome') !== -1;
+      let isNotFirefox = ua.indexOf('firefox') !== -1;
+      return isAndroid || (isNotBlink && isNotFirefox);
+    },
     toggleFullscreen: stopProp(function () {
       this.fullscreen = !this.fullscreen;
 
@@ -71,12 +84,9 @@
       }
     },
     statusChange: function (_, playing) {
-      console.log(playing);
       if (playing && this.state !== 1) { // Playing
-        console.log('play');
         this.$.youtube.play();
       } else if (!playing && this.state !== 2) { // Paused
-        console.log('pause');
         this.$.youtube.pause();
       }
     },
@@ -90,6 +100,7 @@
         });
       } else if (state.data === 1) { // Playing
         this.$.music.setPlaying(true);
+        this.clickedOnVideo = true;
       } else if (state.data === 2) { // Paused
         this.$.music.setPlaying(false);
       } else if (state.data === 5) { // Cued/Ready to play
