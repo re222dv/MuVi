@@ -4,8 +4,8 @@
   Polymer('now-playing-queue', {
     playing: false,
     play: function (event) {
-      let songId = event.currentTarget.getAttribute('data-songid');
-      this.$.nowPlaying.playSong(songId);
+      let index = event.currentTarget.getAttribute('data-index');
+      this.$.nowPlaying.playSongIndex(index);
     },
     songChange: function (_, nowPlaying) {
       this.nowPlaying = nowPlaying;

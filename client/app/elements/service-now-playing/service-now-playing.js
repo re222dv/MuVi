@@ -71,7 +71,6 @@
       this.setShuffle(!shuffle);
     },
     playPlaylist: function (playlistId, startSongId) {
-      console.log('playPlaylist', playlistId);
       music.getPlaylist(playlistId)
         .subscribe(playlist => {
           queue = playlist.songs;
@@ -79,20 +78,17 @@
         }, err => console.error('Error', err));
     },
     playSong: function (songId, playlistId) {
-      console.log('playSong', songId);
-
       if (playlistId) {
-        this.queueSong(songId, playlistId, () => {
-          index = queue.length - 1;
-          this.updateSong();
-          this.play();
-        });
+        this.queueSong(songId, playlistId, () => this.playSongIndex(queue.length - 1));
       } else {
-        index = queue.findIndex(song => song.id === songId);
-        this.updateSong();
-        this.play();
-        console.log('nowPlayling', this.nowPlaying.name);
+        this.playSongIndex(queue.findIndex(song => song.id === songId));
       }
+    },
+    playSongIndex: function (queueIndex) {
+      index = queueIndex;
+      this.updateSong();
+      this.play();
+      console.log('nowPlayling', this.nowPlaying.name);
     },
     queueSong: function (songId, playlistId, callback) {
       console.log('queueSong', songId);
@@ -110,11 +106,9 @@
         }, err => console.error('Error', err));
     },
     updateSong: function () {
-      console.log('updateSong');
       songSubject.onNext(this.nowPlaying);
     },
     updateStatus: function () {
-      console.log('updateStatus');
       this.playing = playing;
       this.repeat = repeat;
       this.shuffle = shuffle;
@@ -122,13 +116,13 @@
     },
     domReady: function () {
       this.subscriptionSong = songSubject.subscribeOnNext(update => {
-        console.log('domReady');
         this.queue = queue;
+        this.index = index;
         this.fire('song-change', update);
       });
       this.subscriptionStatus = statusSubject.subscribeOnNext(update => {
-        console.log('domReady');
         this.queue = queue;
+        this.index = index;
         this.fire('status-change', update);
       });
     },

@@ -6,14 +6,15 @@
 <polymer-element name="now-playing-queue" attributes="playlistId">
   <template>
     <link rel="stylesheet" href="now-playing-queue.css">
-    <service-now-playing id="nowPlaying" queue="{{queue}}" on-status-change="{{statusChange}}"
+    <service-now-playing id="nowPlaying" queue="{{queue}}" index="{{currentIndex}}"
+                         on-status-change="{{statusChange}}"
                          on-song-change="{{songChange}}"></service-now-playing>
-    <template repeat="{{song in queue}}">
-      <paper-item on-click="{{play}}" data-songid="{{song.id}}">
+    <template repeat="{{song, index in queue}}">
+      <paper-item on-click="{{play}}" data-index="{{index}}">
         <core-icon icon="av:play-circle-fill" title="Now Playing"
-                   hidden?="{{nowPlaying.id != song.id || !playing}}"></core-icon>
+                   hidden?="{{index != currentIndex || !playing}}"></core-icon>
         <core-icon icon="av:pause-circle-fill" title="Paused"
-                   hidden?="{{nowPlaying.id != song.id || playing}}"></core-icon>
+                   hidden?="{{index != currentIndex || playing}}"></core-icon>
         <span>{{song.name}}</span>
         <div layout horizontal center>
           <span>{{song.artist.name}}</span>
