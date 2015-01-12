@@ -86,6 +86,7 @@
     statusChange: function (_, playing) {
       if (playing && this.state !== 1) { // Playing
         this.$.youtube.play();
+        this.playing = true;
       } else if (!playing && this.state !== 2) { // Paused
         this.$.youtube.pause();
       }
@@ -106,7 +107,6 @@
       } else if (state.data === 5) { // Cued/Ready to play
         this.async(() => this.videoLoaded = true);
         if (this.playing) {
-          this.$.youtube.setAttribute('videoid', this.$.music.nowPlaying.video.youtubeId);
           this.$.youtube.play();
         }
       }
