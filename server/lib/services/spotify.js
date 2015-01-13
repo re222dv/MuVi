@@ -1,6 +1,6 @@
 let Rx = require('rx');
-import {getArtist} from '../model/DAL/freebase.js';
 import {getUser, getPlaylists, getPlaylist} from '../model/DAL/spotify.js';
+import {getMissingFreebaseEntities} from './freebase.js';
 import {getMissingVideos} from './youtube.js';
 import neo4j from '../model/DAL/neo4j.js';
 import {relate} from '../helpers.js';
@@ -8,42 +8,6 @@ let redis = require('../model/DAL/redis');
 
 //const ONE_HOUR = 1000 * 60 * 60;
 const ONE_HOUR = 1000 * 10;
-
-/**
- * Match existing entities against the new by spoitifyId so that existing are merged.
- * @param {Array<{Entity}>} entities.entities
- * @param {Array<{Relation}>} entities.relations
- */
-let newEntities = (entities) =>
-  // Get all existing SpotifyEntities with same Spotify id as any of the new
-  neo4j.query(`Match (spotify:SpotifyEntity)<--(entity)
-               Where spotify.spotifyId IN {ids}
-               Return spotify, entity`,
-    {ids: entities.entities
-      .filter(entity => entity.type === 'SpotifyEntity')
-      .map(entity => entity.spotifyId)}
-  )
-  .then(existingEntities => {
-    let existingIds = existingEntities.map(entity => ({
-      entity: entity.entity.id,
-      spotify: entity.spotify.spotifyId,
-      spotifyEntityId: entity.spotify.id,
-    }));
-
-    // Add existing ids to entities
-    entities.relations
-      .filter(relation => relation.end.type === 'SpotifyEntity')
-      .forEach(relation => {
-        let existingId = existingIds.filter(id => id.spotify === relation.end.spotifyId);
-
-        if (existingId.length) {
-          relation.start.id = existingId[0].entity;
-          relation.end.id = existingId[0].spotifyEntityId;
-        }
-      });
-
-    return {entities: entities.entities, relations: entities.relations};
-  });
 
 /**
  * Updates the update time to current time
@@ -73,6 +37,7 @@ let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
               playlist.spotifyEntity
             ],
             relations: [
+              relate(spotifyProfile.user, 'is', spotifyProfile.spotifyEntity),
               relate(spotifyProfile.user, 'owns', playlist.playlist),
               relate(playlist.playlist, 'is', playlist.spotifyEntity),
             ],
@@ -85,55 +50,27 @@ let getUserPlaylists = (userId, token, spotifyProfile, modifiedSince) =>
               .filter(entity => entity.type === 'Song')
               .map(relate(playlist.playlist, 'contains'))
           );
-          return newEntities(data)
-            .then(data => {
-              let newArtists = data.entities
-                .filter(entity => entity.id === undefined)
-                .filter(entity => entity.type === 'Artist');
-
-              let freebaseArtists = newArtists
-                .map(artist => artist.name)
-                .map(getArtist);
-
-              return Promise.all([
-                neo4j.create(data.entities, data.relations)
-              ].concat(freebaseArtists))
-                .then(promises => promises.slice(1))
-                .then(freebaseArtists => {
-                  let data = {
-                    entities: newArtists.concat(
-                      freebaseArtists.filter(artist => artist !== undefined)
-                    ),
-                    relations: [],
-                  };
-                  newArtists.forEach((artist, index) => {
-                    if (freebaseArtists[index] !== undefined) {
-                      data.relations.push(relate(artist, 'is', freebaseArtists[index]));
-                    }
-                  });
-
-                  return neo4j.create(data.entities, data.relations);
-                })
-                .catch(e => {
-                  console.error('Freebase Error', e);
-                  throw e;
-                });
+          return neo4j.create(data.entities, data.relations)
+            .then(getMissingFreebaseEntities)
+            .then(() => redis.pub(`updated-${userId}`, 'part'))
+            .then(getMissingVideos)
+            .then(() => redis.pub(`updated-${userId}`, 'part'))
+            .catch(e => {
+              console.error(e);
+              redis.pub(`updated-${userId}`, 'error')
             });
         });
     })
-    .doOnCompleted(() => console.log('flatMap'))
-    .finally(() =>
-      getMissingVideos()
-        .then(() => redis.del(`updating-${userId}`))
-        .then(() => redis.pub(`updated-${userId}`, true))
-        .catch(e => {
-          console.error('Video Error', e);
-          redis.del(`updating-${userId}`)
-            .then(() => redis.pub(`updated-${userId}`, false));
-        }))
+    .doOnCompleted(() => console.log('Spotify done'))
+    .finally(() => {
+      redis.del(`updating-${userId}`);
+      redis.pub(`updated-${userId}`, 'completed');
+    })
     .subscribeOnError((e) => {
       console.error('Playlist error', e);
-      redis.pub(`updated-${userId}`, false);
+      redis.del(`updating-${userId}`);
+      redis.pub(`updated-${userId}`, 'error');
+      redis.pub(`updated-${userId}`, 'completed');
     });
 
 /**

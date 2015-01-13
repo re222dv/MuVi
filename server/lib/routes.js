@@ -18,13 +18,15 @@ export var routes = [
                     reply().code(204).header('x-updating', 'updating');
                   }, 20000);
 
-                  subscriber.on('message', (_, success) => {
-                    subscriber.unsubscribe();
+                  subscriber.on('message', (_, status) => {
+                    if (status === 'completed') {
+                      subscriber.unsubscribe();
+                    }
                     neo4j.getUserPlaylists(request.session.userId)
                       .then(playlists => {
                         clearTimeout(timeout);
-                        if (success === 'false') {
-                          reply(playlists).code(203);
+                        if (status !== 'completed') {
+                          reply(playlists).header('x-updating', 'updating');
                         } else {
                           reply(playlists);
                         }

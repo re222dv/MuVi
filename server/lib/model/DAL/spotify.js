@@ -182,7 +182,7 @@ export function getPlaylists(token, userId, modifiedSince) {
  * @returns Rx.Observable<Array.<{entities: Song|Album|Artist|SpotifyEntity, relations: Relation}>>
  */
 export function getPlaylist(token, url, modifiedSince) {
-  return spotifyRequest(token, url, modifiedSince)
+  return spotifyRequest(token, `${url}?limit=50`, modifiedSince)
     .map(response => (response.items || []).map(item => item.track))
     .map(createMusicEntities);
 }

@@ -1,5 +1,18 @@
 # MuVi
 ## Inledning
+Jag har valt att göra en spelare av musikvideor. Detta gör jag genom att hämta en användares
+spellistor från Spotify och göra en sökning på youtube för varje låt. För att få så bra träffar som
+möjligt slår jag först upp artisten på Freebase och gör sökningen med deras mid. Detta är möjligt
+tack vare att Google har taggat upp stora delar av musikvideorna på youtube mot Freebase.
+
+Min arbetsgång var först att få backenden klar i ett sådant skick att jag kunde arbeta obehindrat på
+klienten. Detat gjorde jag genom att först sätta upp databas och börja hämta data från Spotify,
+Freebase och Youtube. Efter det har jag arbetat ganska fritt och gjort det som kännts viktigast för
+stunden.
+
+Jag har inte sett några liknande applikationer vilket var en del av varför jag ville bygga den. Men
+jag tyckte även det var ett bra tillfälle att testa på flera nya tekniker.
+
 ## Schematisk bild över applikationens beståndsdelar
 Inkludera en schematisk bild över applikationens beståndsdelar så att läsaren har enklare att förstå applikationens dataflöde.
 ![Schematisk Bild](schematic.png)
@@ -19,6 +32,9 @@ Inkludera en schematisk bild över applikationens beståndsdelar så att läsare
 
 ## Serversida
 Serversida: Beskriv hur din applikation fungerar på serversidan. Beskriv funktionaliteten och hur den är uppbyggd. Vald teknik/programmeringsspråk/ramverk? Hur fungerar cachningen? Hur sköter du felhanteringen m.m.
+Servern sköter all hämtning av data från mina APIer. Den är uppdelad per API i så stor utsräckning
+som möjligt för att göra det enklare att lägga till fler APIer och hålla datan så generell som
+möjligt.
 
 ### Tekniker
 #### Node
@@ -31,8 +47,10 @@ t.ex. den väldigt populära Express som är ett mer generellt webbramverk.
 
 #### Redis
 Eftersom jag planerade att bygga applikationen på websockets så valde jag att göra en egen
-sessionslösning för att inte vara bunden till kakor, för lagring av sessioner valde jag Redis för
-att det verkade vara en smidig och populär lösning som skalar bra.
+sessionslösning för att inte vara bunden till kakor. Jag ville även ha en pub/sub lösning för att
+enkelt kunna dela upp applikationen i löst sammanfogade delar. För båda problemen valde jag Redis
+för att det verkade vara en smidig och populär lösning som skalar bra. Jag har i slutet av projektet
+även börjat använda Redis för låsning då den har fungerat föråvansvärt bra.
 
 #### Neo4j
 För datalagring ville jag använda en grafdatabas. Detta för att jag ville ha en schemalös lösning
@@ -57,9 +75,9 @@ användare har samma låt eller artist i någon av sina spellistor.
 
 ### Felhantering
 Då hämtningen av data hela tiden bygger föregående steg så gör fel att hämtningen avbryts och
-den data som finns presenteras för användaren. Eftersom varje spellista hämtas för sig kan det
-hända att vissa spellistor blir hämtade men inte andra. Det gör att användaren alltid får så mycket
-data som möjligt.
+den data som finns presenteras för användaren. Eftersom varje spellista hämtas för sig i delar av
+50 låtar åt gångern kan det dock hända att vissa spellistor blir hämtade men inte andra. Det gör att
+användaren alltid får så mycket data som möjligt.
 
 ## Klientsida
 Klientsida: Hur fungerar din applikation på klientsidan. Beskriv på liknande sätt som serversidan.
@@ -134,7 +152,11 @@ Jag har testat många nya tekniker som visserligen alla känts bra i sig men det
 Databasen som för mig är av en ny typ (graf) och med ett nytt frågespråk (Cypher) har spökat för
 mig och gjort att jag t.ex. har haft problem med dubbletter eller prestandaproblem. Detta har gjort
 att jag bara har en append-only modell. Nya spellistor eller låtar kan hämtas men namn byts aldrig
-och inga saker tas bort då jag hade väldigt stora prestandaproblem med Cyphers Merge.
+och inga saker tas bort då jag hade väldigt stora prestandaproblem med Cyphers Merge. Databasen har
+även varit väldigt ostabil då jag flera gånger har orskat stack overflow och en gång en core dump.
+Om det beror på dåliga frågor eller om den är allmänt ostabil kan jag tyvärr inte säga. Men med
+frågor med 4000-20000 noder i grafen eller batch insättningar med upp till 400 noder tycker jag
+inte bör kunna sänka databasen hur optimerade de än är.
 
 Websockets har jag inte hunnit med vilket gjort att en fjärrstyrnings funktionalitet jag hade önskat
 bygga inte finns med. Tanken va att när man är inloggad med samma användere på två ställen ska man
@@ -152,6 +174,11 @@ hämtningen slutföras.
 
 Jag är starkt beroende av Youtube när applikationen används, om Youtube ligger nere går det inte att
 titta på videor.
+
+Databasen är en risk då den har varit opålitlig redan med en liten graf och två Spotify konton. Då
+ett större konto (många och långa spellistor) kommer upp i 12000 noder själv kan grafen snabbt växa.
+Eftersom jag inte vet om stabilitetsproblemen beror på mig kan jag inte heller säga om jag behöver
+byta ut den eller inte.
 
 Om applikationen blir stor skulle troligtvis frågor om upphovsrätt lyftas på vissa håll men då jag
 inte hostar videorna själv och inte visar de för några som inte hade kunnat titta på de ändå så bör
