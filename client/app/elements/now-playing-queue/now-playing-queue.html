@@ -20,6 +20,10 @@
           <span>{{song.artist.name}}</span>
           <span>{{song.album.name}}</span>
         </div>
+        <context-menu>
+          <paper-item data-index="{{index}}" on-click="{{removeSong}}">Remove song</paper-item>
+          <paper-item on-click="{{clear}}">Clear queue</paper-item>
+        </context-menu>
       </paper-item>
     </template>
   </template>

@@ -105,6 +105,14 @@
           }
         }, err => console.error('Error', err));
     },
+    removeSongIndex: function (index) {
+      queue.splice(index, 1);
+      this.updateSong();
+    },
+    clearQueue: function () {
+      queue = [];
+      this.updateStatus();
+    },
     updateSong: function () {
       songSubject.onNext(this.nowPlaying);
     },

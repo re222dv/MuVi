@@ -11,8 +11,14 @@
       this.nowPlaying = nowPlaying;
     },
     statusChange: function (_, playing) {
-      console.log('status', playing);
       this.playing = playing;
     },
+    removeSong: function (event) {
+      let index = event.currentTarget.getAttribute('data-index');
+      this.$.nowPlaying.removeSongIndex(index);
+    },
+    clear: function () {
+      this.$.nowPlaying.clearQueue();
+    }
   });
 })();
