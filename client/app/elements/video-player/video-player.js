@@ -68,9 +68,13 @@
     previous: stopProp(function () {
       this.$.music.previous();
     }),
-    seek: function (e) {
-      console.log(e.target.immediateValue);
-      this.$.youtube.seekTo(e.target.immediateValue);
+    seek: function () {
+      this.$.youtube.seekTo(this.time);
+    },
+    timeChanged: function (_, value) {
+      if (this.$.slider.dragging) {
+        this.$.youtube.seekTo(value);
+      }
     },
     songChange: function (_, nowPlaying) {
       if (!nowPlaying || !nowPlaying.id) {
@@ -95,6 +99,7 @@
       }
     },
     videoState: function (_, state) {
+      console.log('state', state.data);
       if (state.data === 0) { // Ended
         this.$.music.next();
         this.async(() => {
@@ -117,7 +122,6 @@
     },
     stopProp: stopProp(function () {}),
     youtubeReady: function () {
-      console.log('Very ready');
       this.readyToPlay = true;
       if (this.whenReady) {
         this.song = this.whenReady;

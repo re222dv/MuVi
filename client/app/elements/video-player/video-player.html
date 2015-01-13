@@ -44,13 +44,11 @@
             <h6>{{song.artist.name}}</h6>
           </div>
           <div flex>
-            <template if="{{fullscreen}}">
-              <div id="time" layout horizontal center>
-                <span>{{currenttimeFormatted}}</span>
-                <paper-slider value="{{current}}" max="{{duration}}" on-change="{{seek}}" flex></paper-slider>
-                <span>{{durationFormatted}}</span>
-              </div>
-            </template>
+            <div id="time" layout horizontal center hidden?="{{!fullscreen}}">
+              <span>{{currenttimeFormatted}}</span>
+              <paper-slider id="slider" value="{{current}}" max="{{duration}}" immediateValue="{{time}}" on-change="{{seek}}" flex></paper-slider>
+              <span>{{durationFormatted}}</span>
+            </div>
           </div>
           <paper-icon-button icon="av:repeat" on-click="{{toggleRepeat}}" selected?="{{repeat}}"></paper-icon-button>
           <paper-icon-button icon="av:shuffle" on-click="{{toggleShuffle}}" selected?="{{shuffle}}"></paper-icon-button>
