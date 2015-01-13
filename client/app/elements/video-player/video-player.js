@@ -134,12 +134,14 @@
 
           mousemoves
             .takeUntil(mousemoves)
-            .timeout(2000, Promise.resolve(true))
+            .timeout(2000, Promise.resolve(true)) // Hide controls after 2s of no movement
             .where(data => data === true)
             .subscribe(() => {
               this.showControls = false;
             });
         });
+
+      let timeout;
 
       this.fullscreenListener = Rx.DOM.dblclick(this.$.player)
         .subscribe(() => this.toggleFullscreen());
@@ -147,8 +149,13 @@
         .subscribe(() => {
           if (document.body.getBoundingClientRect().width <= 600) {
             if (this.fullscreen) {
+              if (this.showControls) {
+                window.clearTimeout(timeout);
+              }
               this.showControls = true;
-              window.setTimeout(() => this.showControls = false, 3000);
+              timeout = window.setTimeout(() => { // Hide controls 3s after click
+                this.showControls = false;
+              }, 3000);
             } else {
               this.toggleFullscreen();
             }
