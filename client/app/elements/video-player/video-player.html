@@ -46,7 +46,8 @@
           <div flex>
             <div id="time" layout horizontal center hidden?="{{!fullscreen}}">
               <span>{{currenttimeFormatted}}</span>
-              <paper-slider id="slider" value="{{current}}" max="{{duration}}" immediateValue="{{time}}" on-change="{{seek}}" flex></paper-slider>
+              <paper-slider id="slider" value="{{current}}" max="{{duration}}"
+                            immediateValue="{{time}}" on-change="{{seek}}" flex></paper-slider>
               <span>{{durationFormatted}}</span>
             </div>
           </div>

@@ -6,7 +6,10 @@
       this.playlistId = playlistId;
       this.playlist = [];
       music.getPlaylist(playlistId)
-        .subscribe(this.$.indicator.onData(playlist => this.playlist = playlist));
+        .subscribe(this.$.indicator.onData(playlist => {
+          this.playlist = playlist;
+          this.$.list.scrollToItem(0);
+        }));
     },
     play: function (event) {
       let songId = event.currentTarget.getAttribute('data-songid');
@@ -22,11 +25,10 @@
     },
     domReady: function () {
       Rx.DOM.fromEvent(window, 'resize')
-        .debounce(500) // Debounce to avoid crashing the tab in Chrome
+        .debounce(250) // Debounce to avoid crashing the tab in Chrome
         .subscribe(() => {
-          this.$.listWrapper.style.height = (window.innerHeight - 64) + 'px';
+          this.$.list.updateSize();
         });
-      this.$.listWrapper.style.height = (window.innerHeight - 64) + 'px';
     },
   });
 })(MusicService, Rx);
