@@ -73,6 +73,9 @@
       this.$.youtube.seekTo(e.target.immediateValue);
     },
     songChange: function (_, nowPlaying) {
+      if (!nowPlaying || !nowPlaying.id) {
+        nowPlaying = undefined;
+      }
       if (this.readyToPlay) {
         this.song = nowPlaying;
       } else {

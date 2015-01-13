@@ -14,9 +14,10 @@
       on-status-change="{{statusChange}}"
       playing="{{playing}}"
       repeat="{{repeat}}"
-      shuffle="{{shuffle}}">
+      shuffle="{{shuffle}}"
+      queue="{{queue}}">
     </service-now-playing>
-    <div class="video" hidden?="{{!videoLoaded}}" fullscreen?="{{fullscreen}}">
+    <div class="video" hidden?="{{!videoLoaded || (!song && !queue.length)}}" fullscreen?="{{fullscreen}}">
       <div class="video-wrapper" layout horizontal center>
         <google-youtube
           videoid="{{song.video.youtubeId}}"

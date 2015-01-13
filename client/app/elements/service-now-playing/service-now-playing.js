@@ -111,15 +111,17 @@
     },
     clearQueue: function () {
       queue = [];
-      this.updateStatus();
+      this.updateSong();
     },
     updateSong: function () {
       songSubject.onNext(this.nowPlaying);
+      if (this.nowPlaying === undefined) {
+        playing = false;
+        index = 0;
+        this.updateStatus();
+      }
     },
     updateStatus: function () {
-      this.playing = playing;
-      this.repeat = repeat;
-      this.shuffle = shuffle;
       statusSubject.onNext(playing);
     },
     domReady: function () {
@@ -129,6 +131,9 @@
         this.fire('song-change', update);
       });
       this.subscriptionStatus = statusSubject.subscribeOnNext(update => {
+        this.playing = playing;
+        this.repeat = repeat;
+        this.shuffle = shuffle;
         this.queue = queue;
         this.index = index;
         this.fire('status-change', update);
