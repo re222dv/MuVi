@@ -14,8 +14,8 @@ Jag har inte sett några liknande applikationer vilket var en del av varför jag
 jag tyckte även det var ett bra tillfälle att testa på flera nya tekniker.
 
 ## Schematisk bild över applikationens beståndsdelar
-Inkludera en schematisk bild över applikationens beståndsdelar så att läsaren har enklare att förstå applikationens dataflöde.
 ![Schematisk Bild](schematic.png)
+
 1. Användaren gör en inloggning på sidan (via oauth/Spotify)
 2. Användarens profil hämtas från Spotify
 3. Servern kollar om användarens profil finns och är fräsh, och slutar i så fall direkt efter 4
@@ -31,7 +31,6 @@ Inkludera en schematisk bild över applikationens beståndsdelar så att läsare
 13. Användaren blir presenterad den nya datan
 
 ## Serversida
-Serversida: Beskriv hur din applikation fungerar på serversidan. Beskriv funktionaliteten och hur den är uppbyggd. Vald teknik/programmeringsspråk/ramverk? Hur fungerar cachningen? Hur sköter du felhanteringen m.m.
 Servern sköter all hämtning av data från mina APIer. Den är uppdelad per API i så stor utsräckning
 som möjligt för att göra det enklare att lägga till fler APIer och hålla datan så generell som
 möjligt.
@@ -79,8 +78,6 @@ hända att vissa spellistor blir hämtade men inte andra. Det gör att användar
 data som möjligt.
 
 ## Klientsida
-Klientsida: Hur fungerar din applikation på klientsidan. Beskriv på liknande sätt som serversidan.
-
 ### Tekniker
 #### Polymer / Web Components
 Det stora teknikvalet på klientsidan är att arbeta med Polymer som är ett litet opinionated bibliotek
@@ -136,7 +133,6 @@ För webbläsare som inte har native stöd blir det dock en [stor prestandanackd
 polyfilla ShadowCSS](http://developer.telerik.com/featured/web-components-arent-ready-production-yet/).
 
 ## Offline-first
-Offline-first: Hur har du tänkt kring offline-first?
 Jag sparar spellistor i local storage vilka används, även om de är av en gammal version. Statiska
 resurser som HTML, CSS och JS caches en ett appcache manifest. Youtubevideor sparas inte, dels
 kan de va väldigt stora och dels kan det vara ett upphovsrättsligt problem med tanke på att en stor
@@ -144,7 +140,6 @@ del som sidan visar är copyrightskyddat och ej får sparas av användarna. Det 
 bland sina spellistor men inte titta på videor när man är offline.
 
 ## Reflektion
-Egen reflektion kring projektet: Här tar du upp hur projektet har gått. Vilka eventuella problem har du stött på? Finns det funktioner som du velat implementera men inte hunnit? Hur skulle du vilja jobba vidare med din applikation?
 Jag har testat många nya tekniker som visserligen alla känts bra i sig men det har tagit mer tid
 än jag räknat med och gjort att jag inte hunnit med det jag ville.
 
@@ -166,7 +161,6 @@ Jag vill jobba vidare på den för att lägga till funktionalitet att hantera sp
 i applikationen och inte vara beroende av Spotify (t.ex. genom att hämta metainfo från Freebase).
 
 ## Risker
-Risker med din applikation: Reflektera över vilka risker det finns med din applikation; rent tekniskt, säkerhet, etiskt m.m.
 Jag är starkt beroende av tre APIer för att hämta ny data, om något av de ligger nere så kan inte
 hämtningen slutföras. Jag är dessutom starkt beroende av Youtube när applikationen används, om
 Youtube ligger nere går det inte att titta på videor.
@@ -182,7 +176,6 @@ emot Wikidatas qid eller så kommer jag behöva hosta all Freebasedata själv f�
 matcha artister till mid.
 
 ## Betygshöjande
-Skriv också om de eventuella delar du anser vara betygshöjande med din applikation. Motivera varför du anser dessa vara betygshöjande.
 Applikationen har en responsiv design och skalar bra ner till mobiler. Jag har även tagit hänseende
 till att man i Android måste kunna klicka på en video för att få spela upp den i embeded format.
 
