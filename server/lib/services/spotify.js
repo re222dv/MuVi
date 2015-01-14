@@ -6,8 +6,7 @@ import neo4j from '../model/DAL/neo4j.js';
 import {relate} from '../helpers.js';
 let redis = require('../model/DAL/redis');
 
-//const ONE_HOUR = 1000 * 60 * 60;
-const ONE_HOUR = 1000 * 10;
+const ONE_HOUR = 1000 * 60 * 60;
 
 /**
  * Match existing entities against the new by spoitifyId so that existing are merged.
