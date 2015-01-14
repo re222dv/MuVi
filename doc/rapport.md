@@ -1,5 +1,20 @@
 # MuVi
 ## Inledning
+Jag har valt att göra en spelare av musikvideor. Detta gör jag genom att hämta en användares
+spellistor från Spotify och göra en sökning på youtube för varje låt. För att få så bra träffar som
+möjligt slår jag först upp artisten på Freebase och gör sökningen med deras mid. Detta är möjligt
+tack vare att Google har taggat upp stora delar av musikvideorna på Youtube mot Freebase.
+
+Min arbetsgång var först att få backenden klar i ett sådant skick att jag kunde arbeta obehindrat
+på klienten. Detat gjorde jag genom att först sätta upp databas och börja hämta data från Spotify,
+Freebase och Youtube. Efter det har jag arbetat ganska fritt och gjort det som kännts viktigast för
+stunden.
+
+Jag har inte sett några liknande applikationer vilket var en del av varför jag ville bygga den. Men
+jag tyckte även det var ett bra tillfälle att testa på flera nya tekniker.
+
+Publik url till körbar version: <https://muvi.eneman.eu/>
+
 ## Schematisk bild över applikationens beståndsdelar
 Inkludera en schematisk bild över applikationens beståndsdelar så att läsaren har enklare att förstå applikationens dataflöde.
 ![Schematisk Bild](schematic.png)
@@ -19,6 +34,9 @@ Inkludera en schematisk bild över applikationens beståndsdelar så att läsare
 
 ## Serversida
 Serversida: Beskriv hur din applikation fungerar på serversidan. Beskriv funktionaliteten och hur den är uppbyggd. Vald teknik/programmeringsspråk/ramverk? Hur fungerar cachningen? Hur sköter du felhanteringen m.m.
+Servern sköter all hämtning av data från mina APIer. Den är uppdelad per API i så stor utsräckning
+som möjligt för att göra det enklare att lägga till fler APIer och hålla datan så generell som
+möjligt.
 
 ### Tekniker
 #### Node
@@ -31,8 +49,9 @@ t.ex. den väldigt populära Express som är ett mer generellt webbramverk.
 
 #### Redis
 Eftersom jag planerade att bygga applikationen på websockets så valde jag att göra en egen
-sessionslösning för att inte vara bunden till kakor, för lagring av sessioner valde jag Redis för
-att det verkade vara en smidig och populär lösning som skalar bra.
+sessionslösning för att inte vara bunden till kakor. Jag ville även ha en pub/sub lösning för att
+enkelt kunna dela upp applikationen i löst sammanfogade delar. För båda problemen valde jag Redis
+för att det verkade vara en smidig och populär lösning som skalar bra.
 
 #### Neo4j
 För datalagring ville jag använda en grafdatabas. Detta för att jag ville ha en schemalös lösning
@@ -52,8 +71,8 @@ Javascript, RXJS som har utvecklats av Microsoft.
 Data hämtas när en användare loggar in om den gamla är över en timme gammal, den gamla datan finns
 kvar och endast så lite ny data som möjligt hämtas. Användaren får den cachade datan under tiden
 ny data hämtas. Eftersom videor eller Freebase mid inte är specifikt för användaren utan hör till
-låten/artisten kan det hända att ny sådan info hämtas medan användaren är inloggad om en annan
-användare har samma låt eller artist i någon av sina spellistor.
+låten/artisten kan dessa återanvändas och inte hämtas på nytt om flera användare har samma låt eller
+artist i sina spellistor.
 
 ### Felhantering
 Då hämtningen av data hela tiden bygger föregående steg så gör fel att hämtningen avbryts och
@@ -134,7 +153,10 @@ Jag har testat många nya tekniker som visserligen alla känts bra i sig men det
 Databasen som för mig är av en ny typ (graf) och med ett nytt frågespråk (Cypher) har spökat för
 mig och gjort att jag t.ex. har haft problem med dubbletter eller prestandaproblem. Detta har gjort
 att jag bara har en append-only modell. Nya spellistor eller låtar kan hämtas men namn byts aldrig
-och inga saker tas bort då jag hade väldigt stora prestandaproblem med Cyphers Merge.
+och inga saker tas bort då jag hade väldigt stora prestandaproblem med Cyphers Merge. Jag har en
+annan branch med merge och som presenterar saker för användaren vartefter datan kommer ner, men
+databasen är så långsam att den är oanvändbar. En fråga som mergerar 50 noder tar 2-3 minuter i en
+tom graf, med index på de fälten jag mergear på.
 
 Websockets har jag inte hunnit med vilket gjort att en fjärrstyrnings funktionalitet jag hade önskat
 bygga inte finns med. Tanken va att när man är inloggad med samma användere på två ställen ska man
@@ -148,10 +170,8 @@ i applikationen och inte vara beroende av Spotify (t.ex. genom att hämta metain
 ## Risker
 Risker med din applikation: Reflektera över vilka risker det finns med din applikation; rent tekniskt, säkerhet, etiskt m.m.
 Jag är starkt beroende av tre APIer för att hämta ny data, om något av de ligger nere så kan inte
-hämtningen slutföras.
-
-Jag är starkt beroende av Youtube när applikationen används, om Youtube ligger nere går det inte att
-titta på videor.
+hämtningen slutföras. Jag är dessutom starkt beroende av Youtube när applikationen används, om
+Youtube ligger nere går det inte att titta på videor.
 
 Om applikationen blir stor skulle troligtvis frågor om upphovsrätt lyftas på vissa håll men då jag
 inte hostar videorna själv och inte visar de för några som inte hade kunnat titta på de ändå så bör
