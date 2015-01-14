@@ -1,8 +1,8 @@
 # MuVi
 
-Rapport: [doc/rapport.md](doc/rapport.md)
-Publik url till körbar version: <https://muvi.eneman.eu/>
-Inspelad demo-video: <https://www.youtube.com/watch?v=jhGcVvj3WOU&feature=youtu.be>
+Rapport: [doc/rapport.md](doc/rapport.md)  
+Publik url till körbar version: <https://muvi.eneman.eu/>  
+Inspelad demo-video: <https://www.youtube.com/watch?v=jhGcVvj3WOU&feature=youtu.be>  
 
 ## Projektide
 
