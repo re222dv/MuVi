@@ -148,7 +148,7 @@ export function getUser(token) {
     .map(createSpotifyEntity((spotifyEntity, user) => ({
       user: {
         type: 'User',
-        name: user.display_name,
+        name: user.display_name || user.id,
       },
       spotifyEntity,
     })));
