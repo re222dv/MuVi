@@ -1,5 +1,4 @@
 let base64id = require('base64id');
-let Boom = require('boom');
 let oauth2 = require('simple-oauth2');
 let Rx = require('rx');
 
@@ -59,7 +58,7 @@ let register = (server, options, next) => {
         path: `/auth/${provider.name}/callback`,
         handler: (request, reply) => {
           if (request.query.state !== request.session.oauth[provider.name].state) {
-            return reply(Boom.badRequest());
+            return reply.redirect('/').temporary(true);
           }
 
           let state = base64id.generateId();
@@ -73,7 +72,7 @@ let register = (server, options, next) => {
             },
             (error, token) => {
               if (error) {
-                return reply(Boom.unauthorized());
+                return reply.redirect('/').temporary(true);
               }
 
               token.expiresAt = Date.now() + token.expires_in * 1000;
