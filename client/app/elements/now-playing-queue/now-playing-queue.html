@@ -11,14 +11,16 @@
                          on-song-change="{{songChange}}"></service-now-playing>
     <template repeat="{{song, index in queue}}">
       <paper-item on-click="{{play}}" data-index="{{index}}">
-        <core-icon icon="av:play-circle-fill" title="Now Playing"
-                   hidden?="{{index != currentIndex || !playing}}"></core-icon>
-        <core-icon icon="av:pause-circle-fill" title="Paused"
-                   hidden?="{{index != currentIndex || playing}}"></core-icon>
-        <span>{{song.name}}</span>
-        <div layout horizontal center>
-          <span>{{song.artist.name}}</span>
-          <span>{{song.album.name}}</span>
+        <div class="song" flex layout horizontal center>
+          <core-icon icon="av:play-circle-fill" title="Now Playing"
+                     hidden?="{{index != currentIndex || !playing}}"></core-icon>
+          <core-icon icon="av:pause-circle-fill" title="Paused"
+                     hidden?="{{index != currentIndex || playing}}"></core-icon>
+          <span>{{song.name}}</span>
+          <div class="info" layout horizontal center>
+            <span>{{song.artist.name}}</span>
+            <span>{{song.album.name}}</span>
+          </div>
         </div>
         <context-menu>
           <paper-item data-index="{{index}}" on-click="{{removeSong}}">Remove song</paper-item>

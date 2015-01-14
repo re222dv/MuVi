@@ -25,7 +25,7 @@
     },
     domReady: function () {
       Rx.DOM.fromEvent(window, 'resize')
-        .debounce(250) // Debounce to avoid crashing the tab in Chrome
+        .debounce(500) // Debounce to avoid crashing the tab in Chrome
         .subscribe(() => {
           this.$.list.updateSize();
         });

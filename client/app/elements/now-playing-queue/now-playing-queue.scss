@@ -17,7 +17,7 @@ span {
   }
 }
 
-div {
+.info {
   width: 66%;
 
   span {
@@ -25,8 +25,8 @@ div {
   }
 }
 
-@media (max-width: 800px) {
-  paper-item::shadow .button-content[layout][horizontal] {
+@media (max-width: 900px) {
+  paper-item .song[layout][horizontal] {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -41,7 +41,7 @@ div {
     width: 100%;
   }
 
-  div {
+  .info {
     margin-left: 2rem;
     width: 100%;
 
