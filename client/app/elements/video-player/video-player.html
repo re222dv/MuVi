@@ -51,10 +51,10 @@
               <span>{{durationFormatted}}</span>
             </div>
           </div>
-          <paper-icon-button icon="av:repeat" on-click="{{toggleRepeat}}" selected?="{{repeat}}"></paper-icon-button>
-          <paper-icon-button icon="av:shuffle" on-click="{{toggleShuffle}}" selected?="{{shuffle}}"></paper-icon-button>
-          <paper-icon-button icon="fullscreen" on-click="{{toggleFullscreen}}" hidden?="{{fullscreen}}"></paper-icon-button>
-          <paper-icon-button icon="fullscreen-exit" on-click="{{toggleFullscreen}}" hidden?="{{!fullscreen}}"></paper-icon-button>
+          <paper-icon-button icon="av:repeat" on-click="{{toggleRepeat}}" selected?="{{repeat}}" title="Repeat"></paper-icon-button>
+          <paper-icon-button icon="av:shuffle" on-click="{{toggleShuffle}}" selected?="{{shuffle}}" title="Shuffle"></paper-icon-button>
+          <paper-icon-button icon="fullscreen" on-click="{{toggleFullscreen}}" hidden?="{{fullscreen}}" title="Fullscreen"></paper-icon-button>
+          <paper-icon-button icon="fullscreen-exit" on-click="{{toggleFullscreen}}" hidden?="{{!fullscreen}}" title="Exit Fullscreen"></paper-icon-button>
         </div>
       </div>
     </div>
