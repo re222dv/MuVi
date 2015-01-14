@@ -2,7 +2,6 @@ let Joi = require('joi');
 
 let base = Joi.object().keys({
   id: Joi.string().guid().optional(),
-  newId: Joi.string().guid().optional(),
   type: Joi.string().alphanum().min(1).required(),
 });
 
@@ -50,10 +49,5 @@ let schemas = {
     youtubeId: Joi.string(),
   }),
 };
-
-schemas.FreebaseEntity.unique  = 'mid';
-schemas.SpotifyEntity.unique  = 'spotifyId';
-schemas.SpotifyEntity.isIdentifier  = true;
-schemas.YouTubeVideo.unique  = 'youtubeId';
 
 export default schemas;

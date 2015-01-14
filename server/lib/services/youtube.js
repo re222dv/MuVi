@@ -2,9 +2,6 @@ let Rx = require('rx');
 import {getVideo} from '../model/DAL/youtube.js';
 import neo4j from '../model/DAL/neo4j.js';
 import {relate} from '../helpers.js';
-let redis = require('../model/DAL/redis');
-
-const ONE_HOUR = 1000 * 60 * 60;
 
 /**
  * Tries to get missing videos
@@ -18,14 +15,6 @@ export var getMissingVideos = () =>
       let subject = new Rx.Subject();
 
       subject
-        .flatMap(chunk => Promise.all(
-          chunk.map(row => redis.getset(`youtube-${row.song.id}`, true)
-            .then(_ => {
-              redis.expire(`youtube-${row.song.id}`, ONE_HOUR);
-              return _;
-            })
-            .then(busy => busy ? undefined : row))))
-        .map(chunk => chunk.filter(row => row !== undefined))
         .flatMap(chunk => Promise.all(chunk.map(row => getVideo(row.song, row.artist.mid))))
         .flatMap(videos => {
           let data = {
@@ -46,8 +35,8 @@ export var getMissingVideos = () =>
 
           return neo4j.create(data.entities, data.relations);
         })
-        .doOnError((e) => console.error('Youtube Error', e))
-        .doOnCompleted(() => console.log('Youtube done'))
+        .doOnError((e) => console.log('Video Error', e))
+        .doOnCompleted(() => console.log('done'))
         .subscribe(() => {}, reject, resolve);
 
       // Chunk the rows with a window so we don't send to many requests at the same time

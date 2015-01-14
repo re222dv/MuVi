@@ -5,37 +5,6 @@ let uuid = require('node-uuid');
 import {promise} from '../../helpers';
 import schemas from '../schemas';
 
-let writeQueue = [];
-
-/**
- * Performs the first query in the queue
- */
-let performWrite = () => {
-  console.log('In queue', writeQueue.length);
-  if (writeQueue.length) {
-    let job = writeQueue[0];
-    return job()
-      .then(_ => {
-        writeQueue.shift();
-        performWrite();
-        return _;
-      });
-  }
-};
-
-/**
- * Queues the query avoid locks in neo4j
- */
-let queueWrite = (query, placeholders) =>
-  new Promise(resolveWrite => {
-    writeQueue.push(() =>
-      new Promise(resolveQuery => db.query(query, placeholders, promise(resolveQuery)))
-        .then(resolveWrite));
-    if (writeQueue.length === 1) {
-      performWrite();
-    }
-  });
-
 let relationSchema = Joi.object().keys({
   start: Joi.object().keys({
     id: Joi.string().guid().required()
@@ -100,51 +69,23 @@ let neo4j = {
       .then(() => {
         let match = 'Match ';
         let create = 'Create ';
-        let merge = '';
-        let mergeLast = '';
         let createUnique = 'Create Unique ';
         let placeholders = {};
         entities.forEach((entity, index) => {
-          placeholders[`n${index}`] = JSON.parse(JSON.stringify(entity));
           entity.index = index;
-
-          if (!entity.old && schemas[entity.type].unique) {
-            let id = schemas[entity.type].unique;
-            merge += `Merge (n${entity.index}:${entity.type} {${id}: {n${entity.index}}.${id}}) ` +
-            `On Create Set n${entity.index}.id = {n${entity.index}}.newId ` +
-            `Set n${entity.index} += {n${entity.index}} `;
-            placeholders[`n${entity.index}`].newId = placeholders[`n${entity.index}`].id;
-            delete placeholders[`n${entity.index}`].id;
+          if (entity.old) {
+            match += `(n${index}:${entity.type} {id: {n${index}}.id}), `;
+          } else {
+            create += `(n${index}:${entity.type} {n${index}}), `;
           }
+          placeholders[`n${index}`] = entity;
         });
         relations.forEach(relation => {
-          relation.label = relation.label || 'Relates';
-          if (!relation.end.old && schemas[relation.end.type].isIdentifier) {
-            relation.start.identifier = relation.end;
-            let startIndex = relation.start.index;
-            merge += `Merge (n${startIndex}:${relation.start.type})-` +
-                        `[:${relation.label}]->(n${relation.end.index}) ` +
-                     `On Create Set n${startIndex}.id = {n${startIndex}}.newId ` +
-                     `Set n${startIndex} += {n${relation.start.index}} `;
-            placeholders[`n${startIndex}`].newId = placeholders[`n${startIndex}`].id;
-            delete placeholders[`n${startIndex}`].id;
-          } else {
-            //createUnique += `(n${relation.start.index})-[:${relation.label}]` +
-            //                  `->(n${relation.end.index}), `;
-            mergeLast += `Merge (n${relation.start.index})-[:${relation.label}]` +
-            `->(n${relation.end.index}) `;
-          }
+          createUnique += `(n${relation.start.index})-[:${relation.label || 'Relates'}]` +
+                          `->(n${relation.end.index}), `;
         });
         entities.forEach(entity => {
-          if (entity.old) {
-            match += `(n${entity.index}:${entity.type} {id: {n${entity.index}}.id}), `;
-          } else if (!entity.identifier && !schemas[entity.type].unique) {
-            //create += `(n${entity.index}:${entity.type} {n${entity.index}}), `;
-            merge += `Merge (n${entity.index}:${entity.type} {id: {n${entity.index}}.id}) ` +
-            `Set n${entity.index} += {n${entity.index}} `;
-          }
           delete entity.old;
-          delete entity.identifier;
           delete entity.index;
         });
         match = match.substr(0, match.length - 2);
@@ -161,13 +102,14 @@ let neo4j = {
           createUnique = '';
         }
 
-        console.log(`${match} ${create} ${merge} ${createUnique} ${mergeLast}`);
+        console.log(`${match} ${create} ${createUnique}`);
 
-        if (!create && !merge && !createUnique && !mergeLast) {
+        if (!create && !createUnique) {
           return Promise.resolve([]);
         }
 
-        return queueWrite(`${match} ${create} ${merge} ${createUnique} ${mergeLast}`, placeholders);
+        return new Promise(resolve =>
+          db.query(`${match} ${create} ${createUnique}`, placeholders, promise(resolve)));
       }),
 
   /**
@@ -193,7 +135,8 @@ let neo4j = {
 
         console.log(query);
 
-        return queueWrite(query, placeholders);
+        return new Promise(resolve =>
+          db.query(query, placeholders, promise(resolve)));
       }),
 
   /**
