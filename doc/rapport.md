@@ -13,8 +13,6 @@ stunden.
 Jag har inte sett några liknande applikationer vilket var en del av varför jag ville bygga den. Men
 jag tyckte även det var ett bra tillfälle att testa på flera nya tekniker.
 
-Publik url till körbar version: <https://muvi.eneman.eu/>
-
 ## Schematisk bild över applikationens beståndsdelar
 Inkludera en schematisk bild över applikationens beståndsdelar så att läsaren har enklare att förstå applikationens dataflöde.
 ![Schematisk Bild](schematic.png)
