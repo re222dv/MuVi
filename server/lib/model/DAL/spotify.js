@@ -62,7 +62,7 @@ let createSpotifyEntity = (callback) => (entity) => callback({
  * Creates Song, Album, Artist and SpotifyEntities from an array of spotify song objects
  *
  * @param {Array} songs
- * @returns Array.<{entities: Song|Album|Artist|SpotifyEntity, relations: Relation}>
+ * @returns {{entities: Array.<Song|Album|Artist|SpotifyEntity>, relations: Array.<Relation>}}
  */
 let createMusicEntities = (songs) => {
   let entities = [];

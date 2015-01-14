@@ -25,6 +25,9 @@
             {{playlist.name}}
           </paper-item>
         </template>
+        <template if="{{noPlaylists}}">
+          <div class="noPlaylists">No playlists</div>
+        </template>
         <loading-indicator id="indicator"></loading-indicator>
       </core-header-panel>
       <core-scroll-header-panel main>

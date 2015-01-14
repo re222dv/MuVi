@@ -3,6 +3,7 @@
 
   Polymer('muvi-app', {
     playlistName: 'MuVi',
+    noPlaylists: false,
     queue: false,
     playlistClick: function (event) {
       this.playlistId = event.target.getAttribute('data-id');
@@ -30,6 +31,11 @@
     },
     domReady: function () {
       music.getPlaylists()
+        .doOnCompleted(() => {
+          if (!this.playlists.length) {
+            this.noPlaylists = true;
+          }
+        })
         .subscribe(this.$.indicator.onData(playlists => this.playlists = playlists));
     },
   });
