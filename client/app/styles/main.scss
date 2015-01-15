@@ -26,3 +26,10 @@ google-youtube[fluid] {
   padding: 0 !important;
   height: 100%;
 }
+
+core-list, now-playing-queue {
+  paper-item {
+    // Fixes correct color in lists when there is no shadow CSS support
+    color: $text-color;
+  }
+}
