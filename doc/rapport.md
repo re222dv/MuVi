@@ -148,8 +148,11 @@ mig och gjort att jag t.ex. har haft problem med dubbletter eller prestandaprobl
 att jag bara har en append-only modell. Nya spellistor eller låtar kan hämtas men namn byts aldrig
 och inga saker tas bort då jag hade väldigt stora prestandaproblem med Cyphers Merge. Jag har en
 annan branch med merge och som presenterar saker för användaren vartefter datan kommer ner, men
-databasen är så långsam att den är oanvändbar. En fråga som mergerar 50 noder tar 2-3 minuter i en
-tom graf, med index på de fälten jag mergear på.
+databasen är så långsam att den då blir oanvändbar. En fråga som mergerar 50 noder tar 2-3 minuter i
+en tom graf, med index på de fälten jag mergear på. Jag hittade på Onsdag 14/1 att neo4j har problem
+med Ubuntu standardfilsystem och att man måste göra en hel del inställningar för att det ska fungera
+bra (ger ung. 100x högre skrivprestanda) men jag vill inte dag innan inlämning börja ändra
+inställningar i filsystemet.
 
 Websockets har jag inte hunnit med vilket gjort att en fjärrstyrnings funktionalitet jag hade önskat
 bygga inte finns med. Tanken va att när man är inloggad med samma användere på två ställen ska man
